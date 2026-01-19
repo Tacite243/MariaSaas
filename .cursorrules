@@ -1,0 +1,20 @@
+# MariaSaaS Project Context
+
+- Framework: Electron + Vite + React + TypeScript
+- State Management: Redux Toolkit
+- Database: Prisma (SQLite)
+- Styling: Tailwind CSS
+- Architecture:
+  - `src/main`: Node.js process (DB access, FS access). Use IPC handlers here.
+  - `src/renderer`: React UI. No direct Node.js access. Use `window.api`.
+  - `src/preload`: IPC Bridge.
+
+# Rules
+- Always use strict types.
+- When creating UI, use functional components with hooks.
+- IPC Pattern:
+  1. Define handler in `src/main/ipc`.
+  2. Expose in `src/preload/index.ts`.
+  3. Add type definition in `src/preload/index.d.ts`.
+  4. Call from React using `window.api.methodName`.
+  
