@@ -1,6 +1,6 @@
 # mariasaas
 
-An Electron application with React and TypeScript
+Logiciel de gestion d'une officine pharmaceutique fait avec Electron avec React et Typescript
 
 ## Recommended IDE Setup
 
