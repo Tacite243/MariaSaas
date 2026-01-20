@@ -5,7 +5,7 @@ import { auditService } from './services/auditService'
 import Dashboard from './components/Dashboard'
 import POS from './components/POS'
 import Inventory from './components/Inventory'
-// import CustomerManagement from './components/CustomerManagement';
+import CustomerManagement from './components/CustomerManagement';
 // import BillingManagement from './components/BillingManagement';
 // import AuditTrail from './components/AuditTrail';
 // import Reporting from './components/Reporting';
@@ -62,7 +62,7 @@ function App(): React.JSX.Element {
       case 'dashboard': return <Dashboard />;
       case 'pos': return <POS />;
       case 'inventory': return <Inventory />;
-      // case 'customers': return <CustomerManagement />;
+      case 'customers': return <CustomerManagement />;
       // case 'billing': return <BillingManagement />;
       // case 'reporting': return <Reporting />;
       // case 'cash_journal': return <CashJournal />;
