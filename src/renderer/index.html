@@ -7,11 +7,17 @@
   <title>MariaSaas - Système de Gestion de Pharmacie</title>
   <!-- SCRIPT ANTI-FLASH DARK MODE -->
   <script>
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    (function () {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      // Si 'dark' est sauvegardé OU (pas de sauvegarde ET système dark)
+      if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
   </script>
   <style>
     body {
