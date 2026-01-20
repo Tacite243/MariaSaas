@@ -4,7 +4,7 @@ import { UserRole, AuditAction } from '@renderer/types'
 import { auditService } from './services/auditService'
 import Dashboard from './components/Dashboard'
 import POS from './components/POS'
-// import Inventory from './components/Inventory'
+import Inventory from './components/Inventory'
 // import CustomerManagement from './components/CustomerManagement';
 // import BillingManagement from './components/BillingManagement';
 // import AuditTrail from './components/AuditTrail';
@@ -61,7 +61,7 @@ function App(): React.JSX.Element {
     switch (currentView) {
       case 'dashboard': return <Dashboard />;
       case 'pos': return <POS />;
-      // case 'inventory': return <Inventory />;
+      case 'inventory': return <Inventory />;
       // case 'customers': return <CustomerManagement />;
       // case 'billing': return <BillingManagement />;
       // case 'reporting': return <Reporting />;
