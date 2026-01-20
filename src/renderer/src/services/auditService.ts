@@ -1,9 +1,11 @@
-import { AuditLog, AuditAction } from '../types';
+import { AuditLog, AuditAction } from '../types'
+
 
 class AuditService {
-  private static instance: AuditService;
-  private logs: AuditLog[] = [];
+  private static instance: AuditService
+  private logs: AuditLog[] = []
 
+  // Private constructor for singleton pattern
   private constructor() {}
 
   public static getInstance(): AuditService {
@@ -20,7 +22,7 @@ class AuditService {
     resource: string;
     details: string;
     severity?: 'INFO' | 'WARNING' | 'CRITICAL';
-  }) {
+  }): Promise<AuditLog> {
     const newLog: AuditLog = {
       id: `LOG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
       timestamp: new Date().toISOString(),
@@ -38,7 +40,7 @@ class AuditService {
     return newLog;
   }
 
-  public getLogs() {
+  public getLogs(): AuditLog[] {
     return this.logs;
   }
 }
