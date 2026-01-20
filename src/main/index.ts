@@ -7,6 +7,9 @@ import icon from '../../resources/icon.png?asset'
 // Désactive l'accélération matérielle pour éviter les crashs de rendu/réseau sur Windows
 app.disableHardwareAcceleration();
 
+// Ajout de flags pour désactiver le GPU process et la sandbox GPU qui font crasher le Network Service
+// Ces lignes doivent être avant app.whenReady()
+
 
 function createWindow(): void {
   // Create the browser window.
