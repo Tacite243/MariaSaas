@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { connectToPharmacyLive } from '../services/geminiService';
+// import { connectToPharmacyLive } from '../services/geminiService';
 
 const PharmacyAI: React.FC = () => {
     const [isActive, setIsActive] = useState(false);
@@ -26,53 +26,53 @@ const PharmacyAI: React.FC = () => {
             const outputNode = audioContextRef.current.createGain();
             outputNode.connect(audioContextRef.current.destination);
 
-            const sessionPromise = connectToPharmacyLive({
-                onopen: () => {
-                    setIsConnecting(false);
-                    setIsActive(true);
+            // const sessionPromise = connectToPharmacyLive({
+            //     onopen: () => {
+            //         setIsConnecting(false);
+            //         setIsActive(true);
 
-                    const source = inputContext.createMediaStreamSource(stream);
-                    const processor = inputContext.createScriptProcessor(4096, 1, 1);
+            //         const source = inputContext.createMediaStreamSource(stream);
+            //         const processor = inputContext.createScriptProcessor(4096, 1, 1);
 
-                    processor.onaudioprocess = (e) => {
-                        const inputData = e.inputBuffer.getChannelData(0);
-                        const int16 = new Int16Array(inputData.length);
-                        for (let i = 0; i < inputData.length; i++) {
-                            int16[i] = inputData[i] * 32768;
-                        }
-                        const base64 = btoa(String.fromCharCode(...new Uint8Array(int16.buffer)));
-                        sessionPromise.then(s => s.sendRealtimeInput({ media: { data: base64, mimeType: 'audio/pcm;rate=16000' } }));
-                    };
+            //         processor.onaudioprocess = (e) => {
+            //             const inputData = e.inputBuffer.getChannelData(0);
+            //             const int16 = new Int16Array(inputData.length);
+            //             for (let i = 0; i < inputData.length; i++) {
+            //                 int16[i] = inputData[i] * 32768;
+            //             }
+            //             const base64 = btoa(String.fromCharCode(...new Uint8Array(int16.buffer)));
+            //             sessionPromise.then(s => s.sendRealtimeInput({ media: { data: base64, mimeType: 'audio/pcm;rate=16000' } }));
+            //         };
 
-                    source.connect(processor);
-                    processor.connect(inputContext.destination);
-                },
-                onmessage: async (msg: any) => {
-                    const base64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-                    if (base64Audio && audioContextRef.current) {
-                        const binary = atob(base64Audio);
-                        const bytes = new Uint8Array(binary.length);
-                        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            //         source.connect(processor);
+            //         processor.connect(inputContext.destination);
+            //     },
+            //     onmessage: async (msg: any) => {
+            //         const base64Audio = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+            //         if (base64Audio && audioContextRef.current) {
+            //             const binary = atob(base64Audio);
+            //             const bytes = new Uint8Array(binary.length);
+            //             for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-                        const dataInt16 = new Int16Array(bytes.buffer);
-                        const buffer = audioContextRef.current.createBuffer(1, dataInt16.length, 24000);
-                        const channelData = buffer.getChannelData(0);
-                        for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
+            //             const dataInt16 = new Int16Array(bytes.buffer);
+            //             const buffer = audioContextRef.current.createBuffer(1, dataInt16.length, 24000);
+            //             const channelData = buffer.getChannelData(0);
+            //             for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
 
-                        const source = audioContextRef.current.createBufferSource();
-                        source.buffer = buffer;
-                        source.connect(outputNode);
+            //             const source = audioContextRef.current.createBufferSource();
+            //             source.buffer = buffer;
+            //             source.connect(outputNode);
 
-                        nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioContextRef.current.currentTime);
-                        source.start(nextStartTimeRef.current);
-                        nextStartTimeRef.current += buffer.duration;
-                    }
-                },
-                onerror: (e: any) => console.error("Live AI Error:", e),
-                onclose: () => setIsActive(false),
-            });
+            //             nextStartTimeRef.current = Math.max(nextStartTimeRef.current, audioContextRef.current.currentTime);
+            //             source.start(nextStartTimeRef.current);
+            //             nextStartTimeRef.current += buffer.duration;
+            //         }
+            //     },
+            //     onerror: (e: any) => console.error("Live AI Error:", e),
+            //     onclose: () => setIsActive(false),
+            // });
 
-            sessionRef.current = await sessionPromise;
+            // sessionRef.current = await sessionPromise;
         } catch (err) {
             console.error(err);
             setIsConnecting(false);

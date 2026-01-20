@@ -6,10 +6,10 @@ import Dashboard from './components/Dashboard'
 import POS from './components/POS'
 import Inventory from './components/Inventory'
 import CustomerManagement from './components/CustomerManagement';
-// import BillingManagement from './components/BillingManagement';
-// import AuditTrail from './components/AuditTrail';
-// import Reporting from './components/Reporting';
-// import CashJournal from './components/CashJournal';
+import BillingManagement from './components/BillingManagement';
+import AuditTrail from './components/AuditTrail';
+import Reporting from './components/Reporting';
+import CashJournal from './components/CashJournal';
 import Login from './components/Login'
 // import PharmacyAI from './components/PharmacyAi'
 
@@ -63,10 +63,10 @@ function App(): React.JSX.Element {
       case 'pos': return <POS />;
       case 'inventory': return <Inventory />;
       case 'customers': return <CustomerManagement />;
-      // case 'billing': return <BillingManagement />;
-      // case 'reporting': return <Reporting />;
-      // case 'cash_journal': return <CashJournal />;
-      // case 'audit': return <AuditTrail />;
+      case 'billing': return <BillingManagement />;
+      case 'reporting': return <Reporting />;
+      case 'cash_journal': return <CashJournal />;
+      case 'audit': return <AuditTrail />;
       case 'users': return (
         <div className="bg-white dark:bg-slate-900 p-12 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
            <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic uppercase mb-10">Gestion Équipage</h2>

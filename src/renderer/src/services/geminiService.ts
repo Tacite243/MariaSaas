@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.VITE_GOOGLE_API_KEY });
 
 export const getPharmacyAdvice = async (medication: string, context: string) => {
   try {

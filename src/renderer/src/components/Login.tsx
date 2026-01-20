@@ -98,7 +98,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
                     <div className="mt-10 pt-10 border-t border-slate-100">
                         <p className="text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
-                            Propulsé par MariaSaas Cloud
+                            Développé par Tacite WK
                         </p>
                     </div>
                 </div>

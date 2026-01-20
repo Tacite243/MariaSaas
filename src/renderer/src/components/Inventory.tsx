@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Medication, Lot } from '../types';
-import { analyzeInventory } from '../services/geminiService';
+// import { analyzeInventory } from '../services/geminiService';
 import QRCode from 'qrcode';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
@@ -161,15 +161,15 @@ const Inventory: React.FC = () => {
 
   const handleAiAudit = async () => {
     setIsAnalyzing(true);
-    try {
-      const result = await analyzeInventory(medications);
-      setAiReport(result);
-    } catch (err) {
-      console.error("Audit AI Error:", err);
-      setAiReport({ summary: "Erreur lors de l'analyse IA.", critical_actions: ["Le service est momentanément indisponible.", "Veuillez réessayer."] });
-    } finally {
-      setIsAnalyzing(false);
-    }
+    // try {
+    //   const result = await analyzeInventory(medications);
+    //   setAiReport(result);
+    // } catch (err) {
+    //   console.error("Audit AI Error:", err);
+    //   setAiReport({ summary: "Erreur lors de l'analyse IA.", critical_actions: ["Le service est momentanément indisponible.", "Veuillez réessayer."] });
+    // } finally {
+    //   setIsAnalyzing(false);
+    // }
   };
 
   const filteredMedications = useMemo(() => {
