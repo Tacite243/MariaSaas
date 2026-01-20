@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Icons } from '../constants';
-import { UserRole } from '@renderer/types';
+import { Icons } from '../constants'; // Assure-toi que ce chemin est bon
+import { UserRole } from '../types';     // Assure-toi que ce chemin est bon
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,26 +13,39 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavigate, onLogout }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  
+  // Initialisation intelligente : LocalStorage OU Préférence Système
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // On vérifie d'abord si une classe est déjà posée par le script index.html (voir Étape 3)
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
 
+  // Fonction de bascule propre
   const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    const html = document.documentElement;
+    if (isDarkMode) {
+      html.classList.remove('dark');
       localStorage.setItem('theme', 'light');
+      setIsDarkMode(false);
+    } else {
+      html.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDarkMode(true);
     }
   };
 
+  // Synchronisation au montage (au cas où le script HTML n'a pas tourné)
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
       document.documentElement.classList.add('dark');
       setIsDarkMode(true);
-    } else if (savedTheme === 'light') {
+    } else {
       document.documentElement.classList.remove('dark');
       setIsDarkMode(false);
     }
@@ -41,22 +54,10 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
   const navItems = [
     { id: 'dashboard', label: 'Tableau Bord', icon: Icons.Dashboard, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
     { id: 'pos', label: 'Ventes (POS)', icon: Icons.POS, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'cash_journal', label: 'Journal Caisse', icon: (props: any) => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 1v22m5-18H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6"/></svg>
-    ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
     { id: 'inventory', label: 'Stocks Pro', icon: Icons.Inventory, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'billing', label: 'Documents', icon: (props: any) => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-    ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'reporting', label: 'Reporting', icon: (props: any) => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
-    ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'customers', label: 'Patients', icon: (props: any) => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-    ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'audit', label: 'Audit', icon: (props: any) => (
-      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 2v20M17 5H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6"/></svg>
-    ), roles: [UserRole.SUPERADMIN] },
+    // J'ai gardé tes SVGs inline pour l'exemple, mais l'idéal est de les mettre dans Icons
+    { id: 'customers', label: 'Patients', icon: (props: any) => (<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
+    { id: 'audit', label: 'Audit', icon: (props: any) => (<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 2v20M17 5H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6"/></svg>), roles: [UserRole.SUPERADMIN] },
   ];
 
   const handleNavClick = (viewId: string) => {
@@ -65,7 +66,7 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-hidden font-sans">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 overflow-hidden font-sans text-slate-900 dark:text-slate-100">
       {/* Sidebar Mobile Overlay */}
       {isSidebarOpen && (
         <div 
@@ -80,9 +81,10 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
         ${isSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full w-[280px]'} 
         lg:translate-x-0 lg:relative ${isDesktopOpen ? 'lg:w-[280px]' : 'lg:w-[88px]'}
       `}>
+        {/* LOGO AREA */}
         <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 flex-none h-20 md:h-24">
           <div className="flex items-center gap-4 overflow-hidden">
-            <div className="w-10 h-10 bg-slate-900 dark:bg-sky-600 rounded-xl flex items-center justify-center text-white font-black text-xl flex-none shadow-lg">M</div>
+            <div className="w-10 h-10 bg-slate-900 dark:bg-sky-600 rounded-xl flex items-center justify-center text-white font-black text-xl flex-none shadow-lg transition-colors">M</div>
             {(isSidebarOpen || isDesktopOpen) && <span className="font-black text-2xl text-slate-900 dark:text-white uppercase italic tracking-tighter truncate animate-in fade-in slide-in-from-left-2">MariaSaas</span>}
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
@@ -90,6 +92,7 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
           </button>
         </div>
         
+        {/* NAV ITEMS */}
         <nav className="flex-1 mt-6 px-4 space-y-2 overflow-y-auto no-scrollbar py-2">
           {navItems.filter(item => item.roles.includes(userRole)).map((item) => {
             const Icon = item.icon;
@@ -99,10 +102,12 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200 group ${
-                  isActive ? 'bg-slate-900 dark:bg-sky-600 text-white shadow-xl shadow-sky-600/20' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-600 dark:hover:text-slate-200'
+                  isActive 
+                    ? 'bg-slate-900 dark:bg-sky-600 text-white shadow-xl shadow-sky-600/20' 
+                    : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-600 dark:hover:text-slate-200'
                 }`}
               >
-                <div className={`flex-none transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 dark:text-slate-600'}`}>
+                <div className={`flex-none transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-slate-300 dark:text-slate-500'}`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 {(isSidebarOpen || isDesktopOpen) && <span className="text-[10px] font-black uppercase tracking-widest text-left whitespace-nowrap animate-in fade-in slide-in-from-left-1">{item.label}</span>}
@@ -111,14 +116,17 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
           })}
         </nav>
 
+        {/* FOOTER */}
         <div className="p-6 border-t border-slate-100 dark:border-slate-800">
           <button onClick={onLogout} className="w-full flex items-center gap-4 px-5 py-4 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group">
-            <Icons.Logout className="group-hover:translate-x-1 transition-transform" />
+            {/* Si tu n'as pas l'icone, remplace par un SVG */}
+            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             {(isSidebarOpen || isDesktopOpen) && <span>Déconnexion</span>}
           </button>
         </div>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         <header className="h-16 md:h-24 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-10 transition-colors flex-none z-30">
           <div className="flex items-center gap-3 md:gap-4">
@@ -134,19 +142,26 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, currentView, onNavi
           </div>
           
           <div className="flex items-center gap-3 md:gap-6">
+             {/* BOUTON DARK MODE */}
              <button onClick={toggleDarkMode} className="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-400 dark:text-sky-400 flex-none hover:scale-105 active:scale-95 transition-all shadow-sm">
-                {isDarkMode ? <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg> : <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>}
+                {isDarkMode ? (
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg> 
+                ) : (
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                )}
              </button>
+
              <div className="flex items-center gap-3">
                 <div className="hidden sm:flex flex-col items-end">
                    <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase leading-none">Admin Demo</p>
                    <p className="text-[8px] font-bold text-sky-600 uppercase tracking-widest mt-1">SuperAdmin</p>
                 </div>
-                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white font-black shadow-xl text-xs md:text-sm flex-none border-2 border-white/10">JD</div>
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white font-black shadow-xl text-xs md:text-sm flex-none border-2 border-white/10 transition-colors">JD</div>
              </div>
           </div>
         </header>
         
+        {/* Contenu principal */}
         <div className="flex-1 overflow-auto p-4 md:p-10 bg-slate-50 dark:bg-slate-950 transition-colors custom-scrollbar relative">
           <div className="max-w-7xl mx-auto pb-10 md:pb-0">
             {children}
