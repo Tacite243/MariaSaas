@@ -53,10 +53,33 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
   const navItems = [
     { id: 'dashboard', label: 'Tableau Bord', icon: Icons.Dashboard, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
     { id: 'pos', label: 'Ventes (POS)', icon: Icons.POS, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
+    {
+      id: 'cash-journal',
+      label: 'Journal Caisse',
+      icon: (props: any) => (<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 1v22m5-18H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6" /></svg>),
+      roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
     { id: 'inventory', label: 'Stocks Pro', icon: Icons.Inventory, roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    // Icônes SVG inline (Idéalement à déplacer dans Icons.tsx)
-    { id: 'customers', label: 'Patients', icon: (props: any) => (<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>), roles: [UserRole.SUPERADMIN, UserRole.ADMIN] },
-    { id: 'audit', label: 'Audit', icon: (props: any) => (<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 2v20M17 5H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6" /></svg>), roles: [UserRole.SUPERADMIN] },
+    {
+      id: 'billing', label: 'Documents', icon: (props: any) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+      ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
+    {
+      id: 'reporting', label: 'Reporting', icon: (props: any) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 20V10M18 20V4M6 20v-4" /></svg>
+      ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
+    {
+      id: 'customers', label: 'Patients', icon: (props: any) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+      ), roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
+    {
+      id: 'audit', label: 'Audit', icon: (props: any) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}><path d="M12 2v20M17 5H9.5a4.5 4.5 0 1 0 0 9h5a4.5 4.5 0 1 1 0 9H6" /></svg>
+      ), roles: [UserRole.SUPERADMIN]
+    },
   ];
 
   return (

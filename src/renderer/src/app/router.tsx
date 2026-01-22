@@ -26,7 +26,7 @@ import CashJournal from '@renderer/components/CashJournal';
 const MainLayout = () => {
     // 1. Récupération des données depuis Redux
     // (Adapte selon ton authSlice, pour l'instant je mets des valeurs par défaut si tu n'as pas fini le slice)
-    const userRole = useSelector((state: RootState) => UserRole.ADMIN);
+    const userRole = useSelector((state: RootState) => UserRole.SUPERADMIN);
     const dispatch = useDispatch();
 
     const handleLogout = () => {
