@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 export const loginSchema = z.object({
     email: z.string().email("Email invalide"),
-    password: z.string().min(6, "Le mot de passe doit faire 6 caractères min.")
+    password: z.string().min(6, "Le mot de passe doit faire 6 caractères min."),
+    rememberMe: z.boolean().optional(),
 });
 
 // On exporte le type TypeScript déduit automatiquement par Zod !

@@ -1,9 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { LoginInput } from '@shared/schemas/authSchema';
 import { UserRole } from '@shared/types';
 
-// 1. Définition du type de l'utilisateur stocké dans le Front
-// (On évite de stocker tout l'objet Prisma, juste ce qui sert à l'UI)
+// Type utilisateur (Front)
 interface UserState {
   id: string;
   email: string;
@@ -11,7 +10,6 @@ interface UserState {
   role: UserRole;
 }
 
-// 2. État du module Auth
 interface AuthState {
   user: UserState | null;
   isAuthenticated: boolean;
@@ -19,72 +17,95 @@ interface AuthState {
   error: string | null;
 }
 
-const initialState: AuthState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
+// 1. Initialisation Intelligente : On vérifie s'il y a une session sauvegardée
+const getInitialState = (): AuthState => {
+  const savedUser = localStorage.getItem('auth_user');
+  if (savedUser) {
+    try {
+      const user = JSON.parse(savedUser);
+      return {
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null
+      };
+    } catch (e) {
+      localStorage.removeItem('auth_user');
+    }
+  }
+  return {
+    user: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null,
+  };
 };
 
-// --- THUNK : ACTION ASYNCHRONE (LOGIN) ---
-// C'est ici qu'on appelle le pont "window.api"
+const initialState: AuthState = getInitialState();
+
+// Type étendu pour l'argument du Thunk
+interface LoginPayload extends LoginInput {
+  rememberMe: boolean;
+}
+
+// --- THUNK : LOGIN ---
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (credentials: LoginInput, { rejectWithValue }) => {
+  async ({ email, password, rememberMe }: LoginPayload, { rejectWithValue }) => {
     try {
-      // Appel au Backend (IPC)
-      const response = await window.api.auth.login(credentials);
+      const response = await window.api.auth.login({ email, password });
 
-      // Si le backend renvoie success: false
       if (!response.success) {
         return rejectWithValue(response.error?.message || 'Erreur de connexion');
       }
 
-      // Si succès, on retourne les données de l'utilisateur
-      return response.data; 
+      // On retourne les données ET le choix de persistance
+      return { user: response.data, rememberMe };
     } catch (err: any) {
-      // Crash inattendu (réseau, bug code...)
       return rejectWithValue(err.message || 'Erreur critique');
     }
   }
 );
 
-// --- THUNK : LOGOUT ---
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   await window.api.auth.logout();
-  // Pas de valeur de retour nécessaire
+  // Nettoyage impératif lors du logout
+  localStorage.removeItem('auth_user');
 });
 
-// --- SLICE ---
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Action synchrone pour nettoyer les erreurs manuellement
     clearAuthError: (state) => {
       state.error = null;
     }
   },
   extraReducers: (builder) => {
     builder
-      // 1. PENDING (Chargement en cours...)
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      // 2. FULFILLED (Succès !)
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<UserState>) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload;
+        state.user = action.payload.user;
+
+        // 2. Persistance Conditionnelle
+        if (action.payload.rememberMe) {
+          localStorage.setItem('auth_user', JSON.stringify(action.payload.user));
+        } else {
+          // Si l'utilisateur ne veut pas être "souvenu", on nettoie le storage 
+          // (il restera connecté tant que l'app est ouverte grâce au state Redux)
+          localStorage.removeItem('auth_user');
+        }
       })
-      // 3. REJECTED (Erreur / Mot de passe faux)
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = false;
         state.error = action.payload as string;
       })
-      // 4. LOGOUT (Déconnexion)
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
