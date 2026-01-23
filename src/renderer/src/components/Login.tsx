@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginSchema, LoginInput } from '@shared/schemas/authSchema';
+import { loginUser, clearAuthError } from '@renderer/app/store/slice/authSlice';
+import { RootState, AppDispatch } from '@renderer/app/store/store';
 
-interface LoginProps {
-    onLogin: (email: string, role: string) => void;
-}
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
-    const [email, setEmail] = useState('admin@mariasaas.com');
-    const [password, setPassword] = useState('password123');
-    const [isLoading, setIsLoading] = useState(false);
+const Login: React.FC = () => {
+    // 1. Hooks Architecture
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+    
+    // 2. Lecture du State Redux
+    const { isLoading, error, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
-            onLogin(email, 'SUPERADMIN');
-        }, 800);
+    // 3. Gestion du Formulaire (Validation Zod)
+    const { 
+        register, 
+        handleSubmit, 
+        formState: { errors } 
+    } = useForm<LoginInput>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: 'admin@mariasaas.com', // Pré-rempli pour faciliter tes tests
+            password: 'password123'
+        }
+    });
+
+    // 4. Redirection automatique si succès
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, navigate]);
+
+    // 5. Soumission
+    const onSubmit = (data: LoginInput) => {
+        // Déclenche le Thunk -> IPC -> Backend -> DB
+        dispatch(loginUser(data));
     };
 
     return (
@@ -35,24 +58,37 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <p className="text-slate-500 font-medium mt-2">Gestion de Pharmacie Intelligente</p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Zone d'erreur globale (venant du Backend) */}
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                            <svg className="w-5 h-5 text-red-500 mt-0.5 flex-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <div className="flex-1">
+                                <h4 className="text-sm font-bold text-red-800">Erreur de connexion</h4>
+                                <p className="text-xs text-red-600 mt-1">{error}</p>
+                            </div>
+                            <button onClick={() => dispatch(clearAuthError())} className="text-red-400 hover:text-red-600">✕</button>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        {/* CHAMP EMAIL */}
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-slate-700 ml-1">Email professionnel</label>
                             <div className="relative">
                                 <input
+                                    {...register('email')}
                                     type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 focus:bg-white outline-none transition-all text-slate-900 font-medium"
+                                    className={`w-full pl-12 pr-4 py-4 bg-slate-50 border rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:bg-white outline-none transition-all text-slate-900 font-medium ${errors.email ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'}`}
                                     placeholder="nom@pharmacie.com"
-                                    required
                                 />
                                 <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                                 </svg>
                             </div>
+                            {errors.email && <p className="text-xs text-red-500 font-bold ml-1">{errors.email.message}</p>}
                         </div>
 
+                        {/* CHAMP MOT DE PASSE */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
                                 <label className="text-sm font-bold text-slate-700">Mot de passe</label>
@@ -60,17 +96,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             </div>
                             <div className="relative">
                                 <input
+                                    {...register('password')}
                                     type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 focus:bg-white outline-none transition-all text-slate-900 font-medium"
+                                    className={`w-full pl-12 pr-4 py-4 bg-slate-50 border rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:bg-white outline-none transition-all text-slate-900 font-medium ${errors.password ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'}`}
                                     placeholder="••••••••"
-                                    required
                                 />
                                 <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                                 </svg>
                             </div>
+                            {errors.password && <p className="text-xs text-red-500 font-bold ml-1">{errors.password.message}</p>}
                         </div>
 
                         <div className="flex items-center gap-2 ml-1 pb-2">
@@ -81,7 +116,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-5 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 text-white font-black rounded-2xl transition-all shadow-xl shadow-sky-600/25 active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
+                            className="w-full py-5 bg-sky-600 hover:bg-sky-500 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black rounded-2xl transition-all shadow-xl shadow-sky-600/25 active:scale-[0.98] flex items-center justify-center gap-3 text-lg"
                         >
                             {isLoading ? (
                                 <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>

@@ -1,8 +1,8 @@
 import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './store/store';
-import { UserRole } from '@renderer/types';
-// import { logout } from '../store/slice/authSlice'; // (À créer si pas fait, voir note en bas)
+import { RootState, AppDispatch } from './store/store';
+import { UserRole } from '@shared/types';
+import { logoutUser } from './store/slice/authSlice';
 
 
 // Layouts & Guards
@@ -26,18 +26,23 @@ import CashJournal from '@renderer/components/CashJournal';
 const MainLayout = () => {
     // 1. Récupération des données depuis Redux
     // (Adapte selon ton authSlice, pour l'instant je mets des valeurs par défaut si tu n'as pas fini le slice)
-    const userRole = useSelector((state: RootState) => UserRole.SUPERADMIN);
-    const dispatch = useDispatch();
+    
+    const dispatch = useDispatch<AppDispatch>();
+    const {user} = useSelector((state: RootState) => state.auth);
 
-    const handleLogout = () => {
-        // dispatch(logout()); // Décommente quand ton slice Auth est prêt
-        console.log("Logout triggered");
-        // En attendant, on peut forcer un reload ou gérer via state local
+    // Si jamais l'utilisateur est null (bug rare car ProtectedRoute protège), on fallback sur un rôle safe
+    const userRole = user?.role || UserRole.ADMIN;
+
+    const handleLogout = async () => {
+        // 2. On déclenche la vraie déconnexion (IPC + Redux)
+        await dispatch(logoutUser());
+        // La redirection vers /login sera gérée automatiquement par ProtectedRoute
+        // car isAuthenticated passera à false.
     };
 
     return (
-        <Layout 
-            userRole={userRole} 
+        <Layout
+            userRole={userRole}
             onLogout={handleLogout}
         >
             {/* C'est ICI que React Router va injecter Dashboard, POS, etc. */}
@@ -56,7 +61,7 @@ export const AppRouter = () => {
 
                 {/* 2. Routes Protégées (Toute l'app) */}
                 <Route element={<ProtectedRoute />}>
-                    
+
                     {/* On utilise notre Wrapper qui contient le Layout */}
                     <Route element={<MainLayout />}>
 

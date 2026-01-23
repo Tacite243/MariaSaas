@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin()],
+     build: {
+      rollupOptions: {
+        external: ['bcryptjs', '@prisma/client']
+      }
+    },
     resolve: {
       alias: {
         '@shared': resolve('src/shared')

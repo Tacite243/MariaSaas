@@ -1,13 +1,30 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
   // Important pour Electron : on bundle le moteur pour l'OS cible
   binaryTargets = ["native", "windows"]
 }
 
 datasource db {
   provider = "sqlite"
+  url = env("DATABASE_URL")
 }
+
+
+// Modèle User
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hashé
+  name      String
+  role      String   // Stocké en string, validé par Zod (SUPERADMIN, ADMIN, etc.)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+
+  // Pour le futur (Relation avec les ventes/audits)
+  // sales    Sale[]
+  // audits   AuditLog[]
+}
+

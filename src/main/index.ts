@@ -2,6 +2,10 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { setupAuthHandlers } from './ipc/auth';
+import { authService } from './services/authService';
+
+
 
 // Désactive l'accélération matérielle pour éviter les crashs de rendu/réseau sur Windows
 app.disableHardwareAcceleration()
@@ -41,9 +45,23 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then( async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
+
+   // Initialisation de la BDD
+  try {
+    console.log('🔄 Vérification du SuperAdmin...');
+    await authService.ensureSuperAdminExists();
+    console.log('✅ Base de données prête.');
+  } catch (e) {
+    console.error('❌ Erreur initialisation BDD:', e);
+  }
+
+  // Chargement des routes (IPC)
+  setupAuthHandlers();
+
+  createWindow();  
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -54,6 +72,12 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // Setup Base de données (Seed si vide)
+  await authService.ensureSuperAdminExists();
+
+  // Setup des Handlers IPC (Nos Routes)
+  setupAuthHandlers();
 
   createWindow()
 

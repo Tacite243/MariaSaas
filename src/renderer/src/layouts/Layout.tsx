@@ -3,16 +3,15 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom'; // Hooks du router
 import { Icons } from '../constants';
-import { UserRole } from '@renderer/types';
+import { UserRole } from '@shared/types';
 import { selectIsDarkMode, toggleTheme } from '@renderer/app/store/slice/themeSlice';
-
+import { RootState } from '@renderer/app/store/store';
 
 
 interface LayoutProps {
   children: React.ReactNode;
   userRole: UserRole;
   onLogout: () => void;
-  // REMARQUE : on a supprimé 'currentView' et 'onNavigate' car le Routeur s'en charge maintenant
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
@@ -27,6 +26,16 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
   // --- 2. STATE LOCAL ---
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktopOpen, setIsDesktopOpen] = useState(true);
+
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  // Calcul des initiales dynamiques
+  const userInitials = React.useMemo(() => {
+    if (!user || !user.name) return '??';
+    const names = user.name.trim().split(' ');
+    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    return names[0].substring(0, 2).toUpperCase();
+  }, [user]);
 
   // --- 3. LOGIQUE ROUTEUR ---
   // On détermine la vue active grâce à l'URL. 
@@ -93,13 +102,13 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
         ></div>
       )}
 
-      {/* Sidebar Responsive Container */}
+      {/* Sidebar */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out flex flex-col
         ${isSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full w-[280px]'} 
         lg:translate-x-0 lg:relative ${isDesktopOpen ? 'lg:w-[280px]' : 'lg:w-[88px]'}
       `}>
-        {/* LOGO AREA */}
+        {/* LOGO */}
         <div className="p-6 md:p-8 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 flex-none h-20 md:h-24">
           <div className="flex items-center gap-4 overflow-hidden">
             <div className="w-10 h-10 bg-slate-900 dark:bg-sky-600 rounded-xl flex items-center justify-center text-white font-black text-xl flex-none shadow-lg transition-colors">M</div>
@@ -110,13 +119,11 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
           </button>
         </div>
 
-        {/* NAV ITEMS */}
+        {/* NAV */}
         <nav className="flex-1 mt-6 px-4 space-y-2 overflow-y-auto no-scrollbar py-2">
           {navItems.filter(item => item.roles.includes(userRole)).map((item) => {
             const Icon = item.icon;
-            // On vérifie si l'URL contient l'ID de l'item (ex: /inventory/details active aussi l'onglet inventory)
             const isActive = currentView.includes(item.id);
-
             return (
               <button
                 key={item.id}
@@ -135,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
           })}
         </nav>
 
-        {/* FOOTER */}
+        {/* LOGOUT */}
         <div className="p-6 border-t border-slate-100 dark:border-slate-800">
           <button onClick={onLogout} className="w-full flex items-center gap-4 px-5 py-4 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group">
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
@@ -144,10 +151,11 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         <header className="h-16 md:h-24 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 md:px-10 transition-colors flex-none z-30">
-          {/* Header Mobile Toggle & Title */}
+
+          {/* HEADER LEFT */}
           <div className="flex items-center gap-3 md:gap-4">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-slate-500 shadow-sm active:scale-95 transition-transform">
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
@@ -156,17 +164,13 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
             </button>
             <h1 className="text-xs md:text-sm font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 truncate max-w-[140px] md:max-w-none">
-              {/* On trouve le label correspondant à la vue actuelle */}
               {navItems.find(i => currentView.includes(i.id))?.label || 'MariaSaaS'}
             </h1>
           </div>
 
-          {/* Header Right Actions */}
+          {/* HEADER RIGHT (USER PROFILE) */}
           <div className="flex items-center gap-3 md:gap-6">
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-400 dark:text-sky-400 flex-none hover:scale-105 active:scale-95 transition-all shadow-sm"
-            >
+            <button onClick={() => dispatch(toggleTheme())} className="w-10 h-10 md:w-12 md:h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl md:rounded-2xl flex items-center justify-center text-slate-400 dark:text-sky-400 flex-none hover:scale-105 active:scale-95 transition-all shadow-sm">
               {isDarkMode ? (
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" /></svg>
               ) : (
@@ -176,15 +180,24 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
 
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase leading-none">Admin Demo</p>
-                <p className="text-[8px] font-bold text-sky-600 uppercase tracking-widest mt-1">SuperAdmin</p>
+                {/* NOM UTILISATEUR DYNAMIQUE */}
+                <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase leading-none">
+                  {user?.name || 'Utilisateur'}
+                </p>
+                {/* ROLE DYNAMIQUE */}
+                <p className="text-[8px] font-bold text-sky-600 uppercase tracking-widest mt-1">
+                  {user?.role || 'Guest'}
+                </p>
               </div>
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white font-black shadow-xl text-xs md:text-sm flex-none border-2 border-white/10 transition-colors">JD</div>
+
+              {/* INITIALES DYNAMIQUES */}
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 dark:bg-sky-600 flex items-center justify-center text-white font-black shadow-xl text-xs md:text-sm flex-none border-2 border-white/10 transition-colors">
+                {userInitials}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Contenu principal (Enfants injectés par le Router) */}
         <div className="flex-1 overflow-auto p-4 md:p-10 bg-slate-50 dark:bg-slate-950 transition-colors custom-scrollbar relative">
           <div className="max-w-7xl mx-auto pb-10 md:pb-0">
             {children}
