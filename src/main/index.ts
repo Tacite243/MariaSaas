@@ -1,9 +1,10 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/icon.png?asset';
 import { setupAuthHandlers } from './ipc/auth';
 import { authService } from './services/authService';
+import { setupUserHandlers } from './ipc/users';
 
 
 
@@ -60,6 +61,7 @@ app.whenReady().then( async () => {
 
   // Chargement des routes (IPC)
   setupAuthHandlers();
+  setupUserHandlers();
 
   createWindow();  
 

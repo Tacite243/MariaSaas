@@ -1,13 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { LoginInput } from '../shared/schemas/authSchema'
-
+import { CreateUserInput,UpdateUserInput } from '@shared/schemas/userSchema'
 
 // Api typée
 const api = {
   auth: {
     login: (data: LoginInput) => ipcRenderer.invoke('auth:login', data),
     logout: () => ipcRenderer.invoke('auth:logout')
+  },
+  users:{
+    getAll: () => ipcRenderer.invoke('users:get-all'),
+    create: (data: CreateUserInput) => ipcRenderer.invoke('users:create', data),
+    update: (data: UpdateUserInput) => ipcRenderer.invoke('users:update', data),
+    delete: (id: string, currentUserId: string) => ipcRenderer.invoke('users:delete', { id, currentUserId })
   }
 }
 
