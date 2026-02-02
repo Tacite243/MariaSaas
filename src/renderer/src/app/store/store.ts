@@ -1,6 +1,7 @@
 import { configureStore, Middleware } from '@reduxjs/toolkit'
 import themeReducer from './slice/themeSlice'
 import authReducer from './slice/authSlice'
+import inventoryReducer from './slice/inventorySlice'
 
 
 
@@ -32,6 +33,7 @@ export const store = configureStore({
     reducer: {
         theme: themeReducer,
         auth: authReducer,
+        inventory: inventoryReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(persistenceMiddleware),

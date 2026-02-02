@@ -5,6 +5,8 @@ import icon from '../../resources/icon.png?asset'
 import { setupAuthHandlers } from './ipc/auth';
 import { setupUserHandlers } from './ipc/users';
 import { authService } from './services/authService';
+import { setupInventoryHandlers } from './ipc/inventory';
+
 
 // --- CONFIGURATION LINUX "BUNKER" ---
 if (process.platform === 'linux') {
@@ -44,9 +46,9 @@ function createWindow(): void {
     console.error('⚠️ EVENT: Fenêtre ne répond pas');
   })
 
-  mainWindow.on('crashed', (e) => {
-    console.error('❌ EVENT: Fenêtre a crashé', e);
-  })
+  // mainWindow.on('crashed', (e) => {
+  //   console.error('❌ EVENT: Fenêtre a crashé', e);
+  // })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
@@ -93,6 +95,7 @@ app.whenReady().then(async () => {
   // Routes
   setupAuthHandlers();
   setupUserHandlers();
+  setupInventoryHandlers();
 
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {

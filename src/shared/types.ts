@@ -3,3 +3,9 @@ export enum UserRole {
     ADMIN = 'ADMIN',
     PHARMACIST = 'PHARMACIST'
 }
+
+export enum RequisitionStatus {
+    DRAFT = 'DRAFT',
+    VALIDATED = 'VALIDATED',
+    CANCELLED = 'CANCELLED'
+}

@@ -10,7 +10,7 @@ interface UserState {
   role: UserRole;
 }
 
-interface AuthState {
+export interface AuthState {
   user: UserState | null;
   isAuthenticated: boolean;
   isLoading: boolean;

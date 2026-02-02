@@ -1,31 +1,32 @@
 import { ElectronAPI } from '@electron-toolkit/preload'
 import { ApiResponse } from '../shared/api';
 import { LoginInput } from '../shared/schemas/authSchema';
-import { CreateUserInput, UpdateUserInput } from '@shared/schemas/userSchema';
+import { CreateUserInput, UpdateUserInput } from '../shared/schemas/userSchema';
+import { ProductInput, CreateRequisitionInput } from '../shared/schemas/inventorySchema';
 
-// Tu peux créer un type UserDTO shared pour éviter d'importer Prisma ici
-// Pour simplifier, disons any[] pour l'instant ou crée un type User sans password
-interface UserDTO {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  lastLogin: string | null;
-}
+
 
 declare global {
   interface Window {
     electron: ElectronAPI
     api: {
       auth: {
-        login: (data: LoginInput) => Promise<ApiResponse>;
+        login: (data: LoginInput) => Promise<ApiResponse<any>>;
         logout: () => Promise<ApiResponse<void>>;
-      },
+      };
       users: {
-        getAll: () => Promise<ApiResponse<UserDTO[]>>;
-        create: (data: CreateUserInput) => Promise<ApiResponse<UserDTO>>;
-        update: (data: UpdateUserInput) => Promise<ApiResponse<UserDTO>>;
-        delete: (id: string, currentUserId: string) => Promise<ApiResponse<void>>
+        getAll: () => Promise<ApiResponse<any[]>>;
+        create: (data: CreateUserInput) => Promise<ApiResponse<any>>;
+        update: (data: UpdateUserInput) => Promise<ApiResponse<any>>;
+        delete: (id: string, currentUserId: string) => Promise<ApiResponse<void>>;
+      };
+      inventory: {
+        getProducts: () => Promise<ApiResponse<any[]>>;
+        createProduct: (data: ProductInput) => Promise<ApiResponse<any>>;
+        getSuppliers: () => Promise<ApiResponse<any[]>>;
+        createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<any>>;
+        validateRequisition: (id: string) => Promise<ApiResponse<any>>;
+        getRequisitions: () => Promise<ApiResponse<any[]>>;
       }
     }
   }

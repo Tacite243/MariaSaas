@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { LoginInput } from '../shared/schemas/authSchema'
-import { CreateUserInput,UpdateUserInput } from '@shared/schemas/userSchema'
+import { CreateUserInput, UpdateUserInput } from '@shared/schemas/userSchema'
 
 // Api typée
 const api = {
@@ -9,11 +9,19 @@ const api = {
     login: (data: LoginInput) => ipcRenderer.invoke('auth:login', data),
     logout: () => ipcRenderer.invoke('auth:logout')
   },
-  users:{
+  users: {
     getAll: () => ipcRenderer.invoke('users:get-all'),
     create: (data: CreateUserInput) => ipcRenderer.invoke('users:create', data),
     update: (data: UpdateUserInput) => ipcRenderer.invoke('users:update', data),
     delete: (id: string, currentUserId: string) => ipcRenderer.invoke('users:delete', { id, currentUserId })
+  },
+  inventory: {
+    getProducts: () => ipcRenderer.invoke('inventory:get-products'),
+    createProduct: (data) => ipcRenderer.invoke('inventory:create-product', data),
+    getSuppliers: () => ipcRenderer.invoke('inventory:get-suppliers'),
+    createDraft: (data) => ipcRenderer.invoke('inventory:create-draft', data),
+    validateRequisition: (id) => ipcRenderer.invoke('inventory:validate', id),
+    getRequisitions: () => ipcRenderer.invoke('inventory:get-requisitions'),
   }
 }
 

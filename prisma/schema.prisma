@@ -26,5 +26,84 @@ model User {
   // Pour le futur (Relation avec les ventes/audits)
   // sales    Sale[]
   // audits   AuditLog[]
+  createdRequisitions Requisition[]
 }
 
+// --- GESTION DE STOCK ---
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime @default(now())
+  
+  requisitions Requisition[]
+}
+
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  code        String?  
+  category    String   @default("Générique") // Pour le filtre UI
+  dosage      String?  // Pour l'affichage UI
+  description String?
+  
+  minStock    Int      @default(5)
+  currentStock Int     @default(0) // Total calculé des lots
+  
+  sellPrice   Float    // Prix de vente
+  buyingPrice Float    @default(0) // Prix d'achat de référence
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lots             StockLot[]        // Relation pour l'onglet "Lots"
+  requisitionItems RequisitionItem[]
+}
+
+// Pour gérer l'onglet "Lots" et les péremptions
+model StockLot {
+  id           String   @id @default(uuid())
+  batchNumber  String
+  expiryDate   DateTime
+  quantity     Int      // Quantité restante dans ce lot
+  receivedDate DateTime @default(now())
+  
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Requisition {
+  id          String   @id @default(uuid())
+  reference   String   @unique 
+  status      String   @default("DRAFT")
+  date        DateTime @default(now())
+  // Relation avec Supplier (C'est ici qu'il manquait la définition pour fermer la boucle)
+  supplierId  String
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+  
+  // Relation avec User (Celui qui crée)
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  items       RequisitionItem[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RequisitionItem {
+  id            String      @id @default(uuid())
+  requisitionId String
+  requisition   Requisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  quantity      Int
+  buyPrice      Float
+  batchNumber   String?     
+  expiryDate    DateTime?   
+}
