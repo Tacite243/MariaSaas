@@ -3,9 +3,21 @@ import { z } from 'zod';
 // Produit
 export const productSchema = z.object({
     name: z.string().min(2, "Nom obligatoire"),
-    code: z.string().optional(),
+    dci: z.string().optional(), // Molécule
+    code: z.string().optional(), // Si vide, le backend générera
+
+    category: z.string().default("Générique"),
+    form: z.string().optional(),
+    dosage: z.string().optional(),
+    packaging: z.string().optional(),
+
     minStock: z.number().min(0).default(5),
-    sellPrice: z.number().min(0, "Prix de vente invalide")
+    maxStock: z.number().min(0).optional(),
+    location: z.string().optional(),
+
+    sellPrice: z.number().min(0, "Prix de vente invalide"),
+    buyingPrice: z.number().min(0).default(0),
+    isPrescriptionRequired: z.boolean().default(false)
 });
 
 // Ligne de réquisition

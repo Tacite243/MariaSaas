@@ -16,42 +16,66 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect }) => (
                 <th className="px-6 md:px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Catégorie</th>
                 <th className="px-6 md:px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Dosage</th>
                 <th className="px-6 md:px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Stock</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Achat</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Vente</th>
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Marge</th>
                 <th className="px-6 md:px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
             </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {medications.map(med => {
                 const isLow = med.currentStock <= med.threshold;
+                const margin = med.price - med.buyingPrice;
+                const marginPercent = med.price > 0 ? ((margin / med.price) * 100).toFixed(0) : 0;
+
                 return (
                     <tr key={med.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
-                        <td className="px-6 md:px-10 py-5 md:py-6">
-                            <div className="flex items-center gap-4 md:gap-6">
+                        {/* Article */}
+                        <td className="px-6 py-5">
+                            <div className="flex items-center gap-4">
                                 {med.qrCode && (
-                                    <div className="w-12 h-12 md:w-14 md:h-14 bg-white p-1 rounded-xl md:rounded-2xl border dark:border-slate-700 overflow-hidden flex-none shadow-sm cursor-pointer hover:scale-105 transition-transform" onClick={() => onSelect(med)}>
+                                    <div className="w-10 h-10 bg-white p-1 rounded-lg border dark:border-slate-700 flex-none cursor-pointer" onClick={() => onSelect(med)}>
                                         <img src={med.qrCode} alt="QR" className="w-full h-full object-contain" />
                                     </div>
                                 )}
                                 <div className="flex flex-col min-w-0">
-                                    <span className="font-black text-slate-900 dark:text-white text-sm md:text-base truncate">{med.name}</span>
-                                    <span className="text-[9px] md:text-[10px] font-black text-sky-600 uppercase tracking-widest mt-1">{med.code}</span>
+                                    <span className="font-black text-slate-900 dark:text-white text-sm truncate">{med.name}</span>
+                                    <span className="text-[9px] font-black text-sky-600 uppercase tracking-widest mt-0.5">{med.code}</span>
                                 </div>
                             </div>
                         </td>
-                        <td className="px-6 md:px-10 py-5 md:py-6 whitespace-nowrap">
-                            <span className="px-3 md:px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest">
-                                {med.category}
-                            </span>
-                        </td>
-                        <td className="px-6 md:px-10 py-5 md:py-6 text-center font-bold text-slate-500 dark:text-slate-400 text-xs">{med.dosage}</td>
-                        <td className="px-6 md:px-10 py-5 md:py-6 text-center">
-                            <div className={`inline-flex flex-col items-center px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl ${isLow ? 'bg-red-50 dark:bg-red-900/10 text-red-600' : 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600'}`}>
-                                <span className="font-black text-lg leading-none">{med.currentStock}</span>
-                                <span className="text-[8px] font-black uppercase tracking-widest mt-1 opacity-60">{isLow ? 'Bas' : 'Ok'}</span>
+
+                        {/* Dosage */}
+                        <td className="px-6 py-5 text-center font-bold text-slate-500 dark:text-slate-400 text-xs">{med.dosage || '-'}</td>
+
+                        {/* Stock */}
+                        <td className="px-6 py-5 text-center">
+                            <div className={`inline-flex flex-col items-center px-3 py-1 rounded-lg ${isLow ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
+                                <span className="font-black text-sm leading-none">{med.currentStock}</span>
                             </div>
                         </td>
-                        <td className="px-6 md:px-10 py-5 md:py-6 text-right whitespace-nowrap">
-                            <button onClick={() => onSelect(med)} className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 rounded-xl transition-all active:scale-90">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+
+                        {/* P. Achat */}
+                        <td className="px-6 py-5 text-right font-medium text-slate-400 text-xs">
+                            {med.buyingPrice.toLocaleString()}
+                        </td>
+
+                        {/* P. Vente */}
+                        <td className="px-6 py-5 text-right font-black text-slate-700 dark:text-white text-sm">
+                            {med.price.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">FCFA</span>
+                        </td>
+
+                        {/* Marge */}
+                        <td className="px-6 py-5 text-right">
+                            <span className={`text-xs font-black ${margin >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                {margin > 0 ? '+' : ''}{marginPercent}%
+                            </span>
+                        </td>
+
+                        {/* Action */}
+                        <td className="px-6 py-5 text-right">
+                            <button onClick={() => onSelect(med)} className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 rounded-lg transition-all active:scale-90">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z" /></svg>
                             </button>
                         </td>
                     </tr>

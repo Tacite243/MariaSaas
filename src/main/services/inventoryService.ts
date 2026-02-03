@@ -3,10 +3,36 @@ import { CreateRequisitionInput } from '../../shared/schemas/inventorySchema';
 import { RequisitionStatus } from '../../shared/types';
 
 
+function generateInternalEAN13() {
+    // Préfixe interne (20-29 sont réservés usage interne)
+    const prefix = "20";
+    const timestamp = Date.now().toString().slice(-9); // 9 derniers chiffres du temps
+    const code = prefix + timestamp + "0"; // 12 chiffres temporaires
+
+    // Calcul clé de contrôle EAN13 (Modulo 10)
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+        sum += parseInt(code[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checksum = (10 - (sum % 10)) % 10;
+
+    return prefix + timestamp + checksum;
+}
+
 export class InventoryService {
 
     // --- PRODUITS ---
+
     async createProduct(data: any) {
+        // Si aucun code n'est fourni, on en génère un conforme EAN13
+        if (!data.code || data.code.trim() === '') {
+            data.code = generateInternalEAN13();
+        }
+
+        // Vérification unicité (Safety check)
+        const existing = await prisma.product.findUnique({ where: { code: data.code } });
+        if (existing) throw new Error(`Le code ${data.code} est déjà attribué au produit "${existing.name}"`);
+
         return await prisma.product.create({ data });
     }
 

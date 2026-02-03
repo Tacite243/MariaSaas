@@ -46,22 +46,41 @@ model Supplier {
 
 model Product {
   id          String   @id @default(uuid())
-  name        String
-  code        String?  
-  category    String   @default("Générique") // Pour le filtre UI
-  dosage      String?  // Pour l'affichage UI
+  
+  // IDENTIFICATION
+  name        String   // Nom commercial (ex: Doliprane)
+  dci         String?  // Dénomination Commune Internationale (ex: Paracétamol)
+  
+  // CODIFICATION INTERNATIONALE
+  code        String   @unique // Code barre principal (CIP13 ou EAN13) utilisé pour le scan
+  codeCip7    String?  // Ancien code français (si besoin)
+  codeAtc     String?  // Classe Anatomique (ex: N02BE01)
+  
+  // CARACTÉRISTIQUES
+  category    String   @default("Générique") // ex: Analgésique
+  form        String?  // ex: Comprimé, Sirop, Gel
+  dosage      String?  // ex: 500mg, 1000UI
+  packaging   String?  // ex: Boîte de 8, Flacon 100ml
+  
   description String?
+  isPrescriptionRequired Boolean @default(false) // Ordonnance obligatoire ?
   
+  // GESTION STOCK
   minStock    Int      @default(5)
-  currentStock Int     @default(0) // Total calculé des lots
+  maxStock    Int?     // Pour éviter le sur-stockage
+  currentStock Int     @default(0)
+  location    String?  // Emplacement physique (ex: Rayon A, Étagère 2)
   
-  sellPrice   Float    // Prix de vente
-  buyingPrice Float    @default(0) // Prix d'achat de référence
+  // PRIX
+  sellPrice   Float    
+  buyingPrice Float    @default(0)
+  vatRate     Float    @default(0) // TVA (ex: 18.0)
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  lots             StockLot[]        // Relation pour l'onglet "Lots"
+  // RELATIONS
+  lots             StockLot[]
   requisitionItems RequisitionItem[]
 }
 
