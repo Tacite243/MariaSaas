@@ -1,36 +1,29 @@
-
 generator client {
-  provider = "prisma-client-js"
-  // Important pour Electron : on bundle le moteur pour l'OS cible
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "windows"]
 }
 
 datasource db {
   provider = "sqlite"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
-
-// Modèle User
-
+// --- UTILISATEURS ---
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String   // Hashé
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
   name      String
-  role      String   // Stocké en string, validé par Zod (SUPERADMIN, ADMIN, etc.)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   lastLogin DateTime?
 
-  // Pour le futur (Relation avec les ventes/audits)
-  // sales    Sale[]
-  // audits   AuditLog[]
   createdRequisitions Requisition[]
+  sales               Sale[] // Relation inverse ajoutée (Vendeur)
 }
 
 // --- GESTION DE STOCK ---
-
 model Supplier {
   id        String   @id @default(uuid())
   name      String
@@ -39,80 +32,70 @@ model Supplier {
   email     String?
   address   String?
   createdAt DateTime @default(now())
-  
+
   requisitions Requisition[]
 }
 
-
 model Product {
-  id          String   @id @default(uuid())
-  
-  // IDENTIFICATION
-  name        String   // Nom commercial (ex: Doliprane)
-  dci         String?  // Dénomination Commune Internationale (ex: Paracétamol)
-  
-  // CODIFICATION INTERNATIONALE
-  code        String   @unique // Code barre principal (CIP13 ou EAN13) utilisé pour le scan
-  codeCip7    String?  // Ancien code français (si besoin)
-  codeAtc     String?  // Classe Anatomique (ex: N02BE01)
-  
-  // CARACTÉRISTIQUES
-  category    String   @default("Générique") // ex: Analgésique
-  form        String?  // ex: Comprimé, Sirop, Gel
-  dosage      String?  // ex: 500mg, 1000UI
-  packaging   String?  // ex: Boîte de 8, Flacon 100ml
-  
-  description String?
-  isPrescriptionRequired Boolean @default(false) // Ordonnance obligatoire ?
-  
-  // GESTION STOCK
-  minStock    Int      @default(5)
-  maxStock    Int?     // Pour éviter le sur-stockage
-  currentStock Int     @default(0)
-  location    String?  // Emplacement physique (ex: Rayon A, Étagère 2)
-  
-  // PRIX
-  sellPrice   Float    
-  buyingPrice Float    @default(0)
-  vatRate     Float    @default(0) // TVA (ex: 18.0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                     String  @id @default(uuid())
+  name                   String
+  dci                    String?
+  code                   String  @unique
+  codeCip7               String?
+  codeAtc                String?
+  category               String  @default("Générique")
+  form                   String?
+  dosage                 String?
+  packaging              String?
+  description            String?
+  isPrescriptionRequired Boolean @default(false)
 
-  // RELATIONS
+  minStock     Int     @default(5)
+  maxStock     Int?
+  currentStock Int     @default(0)
+  location     String?
+
+  sellPrice   Float
+  buyingPrice Float @default(0)
+  vatRate     Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   lots             StockLot[]
   requisitionItems RequisitionItem[]
+  saleItems        SaleItem[] // Relation inverse ajoutée
 }
 
-// Pour gérer l'onglet "Lots" et les péremptions
 model StockLot {
   id           String   @id @default(uuid())
   batchNumber  String
   expiryDate   DateTime
-  quantity     Int      // Quantité restante dans ce lot
+  quantity     Int
   receivedDate DateTime @default(now())
-  
-  productId    String
-  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  saleItems SaleItem[] // Relation inverse ajoutée (Traçabilité lot vendu)
 }
 
 model Requisition {
-  id          String   @id @default(uuid())
-  reference   String   @unique 
-  status      String   @default("DRAFT")
-  date        DateTime @default(now())
-  // Relation avec Supplier (C'est ici qu'il manquait la définition pour fermer la boucle)
-  supplierId  String
-  supplier    Supplier @relation(fields: [supplierId], references: [id])
-  
-  // Relation avec User (Celui qui crée)
+  id        String   @id @default(uuid())
+  reference String   @unique
+  status    String   @default("DRAFT")
+  date      DateTime @default(now())
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
   createdById String
-  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdBy   User   @relation(fields: [createdById], references: [id])
 
-  items       RequisitionItem[]
+  items RequisitionItem[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model RequisitionItem {
@@ -123,6 +106,64 @@ model RequisitionItem {
   product       Product     @relation(fields: [productId], references: [id])
   quantity      Int
   buyPrice      Float
-  batchNumber   String?     
-  expiryDate    DateTime?   
+  batchNumber   String?
+  expiryDate    DateTime?
+}
+
+// --- CRM ---
+model Client {
+  id                String  @id @default(uuid())
+  code              String  @unique
+  name              String
+  phone             String?
+  email             String?
+  address           String?
+  insuranceProvider String?
+  insuranceNumber   String?
+
+  sales     Sale[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- VENTES & POS ---
+model Sale {
+  id             String   @id @default(uuid())
+  reference      String   @unique
+  subTotal       Float
+  taxAmount      Float    @default(0)
+  discountAmount Float    @default(0)
+  totalAmount    Float
+  paymentMethod  String
+  status         String   @default("COMPLETED")
+  date           DateTime @default(now())
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  items SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaleItem {
+  id     String @id @default(uuid())
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  stockLotId String?
+  stockLot   StockLot? @relation(fields: [stockLotId], references: [id])
+
+  quantity  Int
+  unitPrice Float
+  costPrice Float
+  taxRate   Float @default(0)
+  total     Float
 }

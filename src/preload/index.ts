@@ -22,6 +22,9 @@ const api = {
     createDraft: (data) => ipcRenderer.invoke('inventory:create-draft', data),
     validateRequisition: (id) => ipcRenderer.invoke('inventory:validate', id),
     getRequisitions: () => ipcRenderer.invoke('inventory:get-requisitions'),
+  },
+  sales: {
+    create: (data) => ipcRenderer.invoke('sales:create', data),
   }
 }
 

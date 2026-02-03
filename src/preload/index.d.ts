@@ -3,7 +3,7 @@ import { ApiResponse } from '../shared/api';
 import { LoginInput } from '../shared/schemas/authSchema';
 import { CreateUserInput, UpdateUserInput } from '../shared/schemas/userSchema';
 import { ProductInput, CreateRequisitionInput } from '../shared/schemas/inventorySchema';
-
+import { CreateSaleInput } from '@shared/schemas/salesSchema';
 
 
 declare global {
@@ -27,6 +27,9 @@ declare global {
         createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<any>>;
         validateRequisition: (id: string) => Promise<ApiResponse<any>>;
         getRequisitions: () => Promise<ApiResponse<any[]>>;
+      };
+      sales: {
+        create: (data: CreateSaleInput) => Promise<ApiResponse<any>>;
       }
     }
   }
