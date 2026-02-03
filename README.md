@@ -1,3 +1,92 @@
+### 1. Finalisation du Preload
+
+#### `src/preload/index.d.ts` (Définition des types)
+
+```typescript
+import { ElectronAPI } from '@electron-toolkit/preload'
+import { ApiResponse } from '../shared/api';
+import { LoginInput } from '../shared/schemas/authSchema';
+import { CreateUserInput, UpdateUserInput } from '../shared/schemas/userSchema';
+import { ProductInput, CreateRequisitionInput } from '../shared/schemas/inventorySchema';
+// 👇 AJOUT IMPORT
+import { CreateSaleInput } from '../shared/schemas/salesSchema';
+
+declare global {
+  interface Window {
+    electron: ElectronAPI
+    api: {
+      auth: {
+        login: (data: LoginInput) => Promise<ApiResponse<any>>;
+        logout: () => Promise<ApiResponse<void>>;
+      };
+      users: {
+        getAll: () => Promise<ApiResponse<any[]>>;
+        create: (data: CreateUserInput) => Promise<ApiResponse<any>>;
+        update: (data: UpdateUserInput) => Promise<ApiResponse<any>>;
+        delete: (id: string, currentUserId: string) => Promise<ApiResponse<void>>;
+      };
+      inventory: {
+        getProducts: () => Promise<ApiResponse<any[]>>;
+        createProduct: (data: ProductInput) => Promise<ApiResponse<any>>;
+        getSuppliers: () => Promise<ApiResponse<any[]>>;
+        createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<any>>;
+        validateRequisition: (id: string) => Promise<ApiResponse<any>>;
+        getRequisitions: () => Promise<ApiResponse<any[]>>;
+      };
+      // 👇 AJOUT MODULE SALES
+      sales: {
+        create: (data: CreateSaleInput) => Promise<ApiResponse<any>>;
+      }
+    }
+  }
+}
+```
+
+#### `src/preload/index.ts` (Implémentation)
+
+```typescript
+import { contextBridge, ipcRenderer } from 'electron';
+
+const api = {
+  auth: {
+    login: (data) => ipcRenderer.invoke('auth:login', data),
+    logout: () => ipcRenderer.invoke('auth:logout')
+  },
+  users: {
+    getAll: () => ipcRenderer.invoke('users:get-all'),
+    create: (data) => ipcRenderer.invoke('users:create', data),
+    update: (data) => ipcRenderer.invoke('users:update', data),
+    delete: (id, currentUserId) => ipcRenderer.invoke('users:delete', { id, currentUserId })
+  },
+  inventory: {
+    getProducts: () => ipcRenderer.invoke('inventory:get-products'),
+    createProduct: (data) => ipcRenderer.invoke('inventory:create-product', data),
+    getSuppliers: () => ipcRenderer.invoke('inventory:get-suppliers'),
+    createDraft: (data) => ipcRenderer.invoke('inventory:create-draft', data),
+    validateRequisition: (id) => ipcRenderer.invoke('inventory:validate', id),
+    getRequisitions: () => ipcRenderer.invoke('inventory:get-requisitions'),
+  },
+  // 👇 AJOUT MODULE SALES
+  sales: {
+    create: (data) => ipcRenderer.invoke('sales:create', data)
+  }
+};
+
+if (process.contextIsolated) {
+  contextBridge.exposeInMainWorld('api', api);
+} else {
+  // @ts-ignore (fallback)
+  window.api = api;
+}
+```
+
+---
+
+### 2. Le README.md (Developer Guide)
+
+Crée un fichier `README.md` à la racine du projet. C'est la bible pour tout nouveau développeur qui rejoint l'équipe MariaSaaS.
+
+```markdown
 # MariaSaaS - Pharmacy Management System
 
 Bienvenue dans le code source de **MariaSaaS**.
@@ -74,3 +163,32 @@ Ne touchez pas à tout. Suivez ce flux pour ajouter une feature (ex: Gestion des
 - **Voir les données (GUI) :**
   ```bash
   npx prisma studio
+  ```
+- **Reset complet (Attention !) :** Supprimez `prisma/dev.db` et relancez `npm run dev`.
+
+### 3. Résolution de Problèmes Courants
+
+- **Erreur `PrismaClient...` ou `Unknown property` :**
+  C'est un problème de build Electron. Vérifiez que `src/main/lib/prisma.ts` force bien le chemin via `process.env.DATABASE_URL`.
+
+- **Écran blanc au démarrage :**
+  Ouvrez la console développeur (`Ctrl + Shift + I`). Si erreur `require is not defined`, vérifiez que vous n'avez pas d'import CommonJS dans le code React.
+
+- **Crash silencieux sous Linux :**
+  Probablement un souci Wayland/GPU. Lancez avec `npm run dev` (le code `index.ts` gère désormais les flags `--no-sandbox` automatiquement).
+
+---
+
+## 📦 Build & Production
+
+Pour générer l'installateur (`.exe`, `.deb`, `.dmg`) :
+
+```bash
+npm run build
+# ou pour une plateforme spécifique
+npm run build:win
+npm run build:linux
+```
+
+L'exécutable sera dans le dossier `dist/`.
+```
