@@ -31,25 +31,25 @@ export const RequisitionEditor: React.FC<Props> = ({ onClose, onSuccess }) => {
 
     // Chargement initial
     useEffect(() => {
-    dispatch(fetchProducts());
-    
-    // Chargement robuste des fournisseurs
-    window.api.inventory.getSuppliers()
-      .then(res => {
-        if (res.success && res.data && res.data.length > 0) {
-          setSuppliers(res.data);
-          setSupplierId(res.data[0].id);
-        } else {
-          // AUCUN FOURNISSEUR TROUVÉ
-          // On peut soit bloquer, soit permettre de continuer sans fournisseur (si le backend le permet)
-          // Ici, on va afficher une alerte visuelle dans l'UI
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingSuppliers(false)); // Fin du chargement
+        dispatch(fetchProducts());
 
-    if (items.length === 0) addLine();
-  }, []);
+        // Chargement robuste des fournisseurs
+        window.api.inventory.getSuppliers()
+            .then(res => {
+                if (res.success && res.data && res.data.length > 0) {
+                    setSuppliers(res.data);
+                    setSupplierId(res.data[0].id);
+                } else {
+                    // AUCUN FOURNISSEUR TROUVÉ
+                    // On peut soit bloquer, soit permettre de continuer sans fournisseur (si le backend le permet)
+                    // Ici, on va afficher une alerte visuelle dans l'UI
+                }
+            })
+            .catch(console.error)
+            .finally(() => setIsLoadingSuppliers(false)); // Fin du chargement
+
+        if (items.length === 0) addLine();
+    }, []);
 
     const addLine = () => {
         setItems([...items, {
@@ -123,31 +123,31 @@ export const RequisitionEditor: React.FC<Props> = ({ onClose, onSuccess }) => {
                 </div>
             </div>
 
-             {/* Toolbar Fournisseur Blindée */}
-      <div className="bg-slate-800 p-4 rounded-2xl mb-4 flex items-center gap-4 border border-slate-700">
-        <label className="text-slate-400 text-xs font-bold uppercase">Fournisseur :</label>
-        
-        {isLoadingSuppliers ? (
-          <span className="text-slate-500 text-xs italic">Chargement...</span>
-        ) : suppliers.length > 0 ? (
-          <select 
-            value={supplierId} 
-            onChange={e => setSupplierId(e.target.value)}
-            className="bg-slate-900 text-white p-2 rounded-lg border border-slate-600 outline-none focus:border-sky-500"
-          >
-            {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        ) : (
-          <div className="flex items-center gap-3">
-            <span className="text-amber-500 text-xs font-bold flex items-center gap-1">
-              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              Aucun fournisseur
-            </span>
-            {/* Idéalement un bouton pour créer un fournisseur à la volée ici */}
-            <button className="text-xs text-sky-400 underline">Créer un fournisseur rapide</button>
-          </div>
-        )}
-      </div>
+            {/* Toolbar Fournisseur Blindée */}
+            <div className="bg-slate-800 p-4 rounded-2xl mb-4 flex items-center gap-4 border border-slate-700">
+                <label className="text-slate-400 text-xs font-bold uppercase">Fournisseur :</label>
+
+                {isLoadingSuppliers ? (
+                    <span className="text-slate-500 text-xs italic">Chargement...</span>
+                ) : suppliers.length > 0 ? (
+                    <select
+                        value={supplierId}
+                        onChange={e => setSupplierId(e.target.value)}
+                        className="bg-slate-900 text-white p-2 rounded-lg border border-slate-600 outline-none focus:border-sky-500"
+                    >
+                        {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <span className="text-amber-500 text-xs font-bold flex items-center gap-1">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            Aucun fournisseur
+                        </span>
+                        {/* Idéalement un bouton pour créer un fournisseur à la volée ici */}
+                        <button className="text-xs text-sky-400 underline">Créer un fournisseur rapide</button>
+                    </div>
+                )}
+            </div>
 
             {/* Table Éditable */}
             <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl">
