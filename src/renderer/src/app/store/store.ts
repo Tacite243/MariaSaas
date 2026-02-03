@@ -2,7 +2,7 @@ import { configureStore, Middleware } from '@reduxjs/toolkit'
 import themeReducer from './slice/themeSlice'
 import authReducer from './slice/authSlice'
 import inventoryReducer from './slice/inventorySlice'
-
+import salesReducer from './slice/salesSlice'
 
 
 // --- MIDDLEWARE DE PERSISTANCE ---
@@ -33,7 +33,8 @@ export const store = configureStore({
     reducer: {
         theme: themeReducer,
         auth: authReducer,
-        inventory: inventoryReducer
+        inventory: inventoryReducer,
+        sales: salesReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(persistenceMiddleware),
