@@ -35,6 +35,18 @@ export class AuthService {
     // COMMAND: Seed Initial (Pour créer le premier admin au premier lancement)
     async ensureSuperAdminExists() {
         const count = await prisma.user.count();
+        const supplierCount = await prisma.supplier.count();
+
+        if (supplierCount === 0) {
+            await prisma.supplier.create({
+                data: {
+                    name: 'Fournisseur Divers',
+                    email: 'contact@divers.com',
+                    phone: '0000000000',
+                    address: 'Adresse par défaut'
+                }
+            })
+        }
         if (count === 0) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
             await prisma.user.create({

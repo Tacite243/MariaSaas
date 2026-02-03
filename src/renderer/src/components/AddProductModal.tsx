@@ -45,90 +45,48 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit }) => {
     return (
         <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-xl flex items-center justify-center p-4">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2rem] p-8 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6">Nouveau Produit</h3>
+
+                <div className="mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">Référencer un Produit</h3>
+                    <p className="text-xs text-slate-400 mt-1">Crée la fiche dans le catalogue. Le stock restera à 0.</p>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Nom & DCI */}
+                    <input type="text" placeholder="Nom Commercial (ex: Doliprane)" className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl font-bold dark:text-white outline-none focus:ring-2 focus:ring-sky-500" value={newMed.name} onChange={e => setNewMed({ ...newMed, name: e.target.value })} required />
+                    <input type="text" placeholder="Molécule DCI (ex: Paracétamol)" className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white" value={newMed.dci || ''} onChange={e => setNewMed({ ...newMed, dci: e.target.value })} />
 
-                    {/* Nom Commercial */}
-                    <input
-                        type="text"
-                        placeholder="Nom du produit"
-                        className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-bold dark:text-white"
-                        value={newMed.name}
-                        onChange={e => setNewMed({ ...newMed, name: e.target.value })}
-                        required
-                    />
-
-                    {/* DCI (Molécule) */}
-                    <input
-                        type="text"
-                        placeholder="Molécule (DCI) - ex: Paracétamol"
-                        className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white"
-                        value={newMed.dci || ''}
-                        onChange={e => setNewMed({ ...newMed, dci: e.target.value })}
-                    />
-
-                    {/* Code & Dosage */}
+                    {/* Détails Techniques */}
                     <div className="grid grid-cols-2 gap-4">
-                        <input
-                            type="text"
-                            placeholder="Code (CIP)"
-                            className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-bold dark:text-white"
-                            value={newMed.code || ''}
-                            onChange={e => setNewMed({ ...newMed, code: e.target.value })}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Dosage"
-                            className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-sky-500 font-bold dark:text-white"
-                            value={newMed.dosage || ''}
-                            onChange={e => setNewMed({ ...newMed, dosage: e.target.value })}
-                        />
+                        <input type="text" placeholder="Code CIP / EAN" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white" value={newMed.code || ''} onChange={e => setNewMed({ ...newMed, code: e.target.value })} />
+                        <input type="text" placeholder="Dosage (500mg)" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white" value={newMed.dosage || ''} onChange={e => setNewMed({ ...newMed, dosage: e.target.value })} />
                     </div>
 
-                    {/* Forme & Conditionnement */}
                     <div className="grid grid-cols-2 gap-4">
-                        <input
-                            type="text"
-                            placeholder="Forme (Comp, Sirop...)"
-                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white"
-                            value={newMed.form || ''}
-                            onChange={e => setNewMed({ ...newMed, form: e.target.value })}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Conditionnement (Bte 10...)"
-                            className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white"
-                            value={newMed.packaging || ''}
-                            onChange={e => setNewMed({ ...newMed, packaging: e.target.value })}
-                        />
+                        <input type="text" placeholder="Forme (Comp...)" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white" value={newMed.form || ''} onChange={e => setNewMed({ ...newMed, form: e.target.value })} />
+                        <input type="text" placeholder="Condit. (Bte 8...)" className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white" value={newMed.packaging || ''} onChange={e => setNewMed({ ...newMed, packaging: e.target.value })} />
                     </div>
 
-                    {/* Toggle Ordonnance */}
-                    <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                        <input
-                            type="checkbox"
-                            id="prescription"
-                            checked={newMed.isPrescriptionRequired}
-                            onChange={e => setNewMed({ ...newMed, isPrescriptionRequired: e.target.checked })}
-                            className="w-5 h-5 accent-sky-600 rounded cursor-pointer"
-                        />
-                        <label htmlFor="prescription" className="text-sm font-bold text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                            Ordonnance Obligatoire (Liste I/II)
-                        </label>
-                    </div>
-
-                    {/* Catégories */}
+                    {/* Catégorie */}
                     <div className="flex gap-2 overflow-x-auto no-scrollbar py-2">
                         {CATEGORIES.filter(c => c !== 'Tous').map(cat => (
-                            <button
-                                type="button"
-                                key={cat}
-                                onClick={() => setNewMed({ ...newMed, category: cat })}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border transition-all ${newMed.category === cat ? 'bg-sky-600 text-white border-sky-600' : 'bg-transparent border-slate-200 text-slate-500 hover:bg-slate-50'}`}
-                            >
-                                {cat}
-                            </button>
+                            <button type="button" key={cat} onClick={() => setNewMed({ ...newMed, category: cat })} className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap border transition-all ${newMed.category === cat ? 'bg-sky-600 text-white border-sky-600' : 'bg-transparent border-slate-200 text-slate-500'}`}>{cat}</button>
                         ))}
+                    </div>
+
+                    {/* Prix de Référence (Pas d'entrée en stock) */}
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                        <p className="text-[10px] uppercase font-bold text-slate-400 mb-3 tracking-widest">Politique de Prix</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500">P. Achat Réf.</label>
+                                <input type="number" className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold dark:text-white" value={newMed.buyingPrice || ''} onChange={e => setNewMed({ ...newMed, buyingPrice: Number(e.target.value) })} />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500">P. Vente Public</label>
+                                <input type="number" className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl font-bold dark:text-white" value={newMed.sellPrice || ''} onChange={e => setNewMed({ ...newMed, sellPrice: Number(e.target.value) })} required />
+                            </div>
+                        </div>
                     </div>
 
                     {/* SECTION PRIX & MARGE (NOUVEAU) */}
@@ -167,22 +125,10 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit }) => {
                         </div>
                     </div>
 
-                    {/* Seuil Alerte */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Seuil Alerte (Stock Min)</label>
-                        <input
-                            type="number"
-                            placeholder="5"
-                            className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-xl outline-none dark:text-white"
-                            value={newMed.minStock}
-                            onChange={e => setNewMed({ ...newMed, minStock: Number(e.target.value) })}
-                        />
-                    </div>
-
                     {/* Actions */}
                     <div className="flex gap-3 pt-4">
-                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold rounded-xl hover:bg-slate-200 transition-colors">Annuler</button>
-                        <button type="submit" className="flex-1 py-4 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 transition-colors shadow-lg shadow-sky-600/20">Créer</button>
+                        <button type="button" onClick={onClose} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold rounded-xl hover:bg-slate-200">Annuler</button>
+                        <button type="submit" className="flex-1 py-4 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-500 shadow-lg shadow-sky-600/20">Référencer</button>
                     </div>
                 </form>
             </div>

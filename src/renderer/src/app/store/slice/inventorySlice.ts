@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ProductInput } from '@shared/schemas/inventorySchema';
+import { ProductInput, CreateRequisitionInput } from '@shared/schemas/inventorySchema';
 
 // Type qui matche ton Schema Prisma mis à jour
 export interface ProductLot {
@@ -21,6 +21,26 @@ export interface Product {
     sellPrice: number;
     buyingPrice: number;
     lots: ProductLot[]; // Relation incluse
+}
+
+export interface Requisition {
+    id: string;
+    reference: string;
+    status: 'DRAFT' | 'VALIDATED';
+    supplierId: string;
+    createdById: string;
+    createdAt: string;
+    items: RequisitionItem[];
+}
+
+export interface RequisitionItem {
+    id: string;
+    productId: string;
+    quantity: number;
+    buyPrice: number;
+    batchNumber: string;
+    expiryDate: string;
+    product: Product; // Relation incluse
 }
 
 export interface InventoryState {
@@ -68,6 +88,33 @@ export const createProduct = createAsyncThunk<Product, ProductInput>(
     }
 );
 
+// Créer un brouillon de réquisition
+export const createDraftRequisition = createAsyncThunk<Requisition, CreateRequisitionInput>(
+    'inventory/createDraft',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await window.api.inventory.createDraft(data);
+            if (!response.success) throw new Error(response.error?.message);
+            return response.data as Requisition;
+        } catch (err: any) {
+            return rejectWithValue(err.message);
+        }
+    }
+);
+
+export const validateRequisition = createAsyncThunk<Requisition, string>(
+    'inventory/validate',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await window.api.inventory.validateRequisition(id);
+            if (!response.success) throw new Error(response.error?.message);
+            return response.data as Requisition;
+        } catch (err: any) {
+            return rejectWithValue(err.message);
+        }
+    }
+)
+
 // --- SLICE ---
 const inventorySlice = createSlice({
     name: 'inventory',
@@ -92,6 +139,14 @@ const inventorySlice = createSlice({
             // Create Product (Optimistic update ou re-fetch)
             .addCase(createProduct.fulfilled, (state, action: PayloadAction<Product>) => {
                 state.products.push(action.payload); // Ajout immédiat à la liste
+            })
+            // Requisitions (On ne stocke pas les réquisitions dans le state pour l'instant, 
+            // mais on gère le loading state si besoin)
+            .addCase(createDraftRequisition.rejected, (state, action) => {
+                state.error = action.payload as string;
+            })
+            .addCase(validateRequisition.rejected, (state, action) => {
+                state.error = action.payload as string;
             });
     },
 });

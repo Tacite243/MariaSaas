@@ -1,13 +1,18 @@
 import React, { useState, useMemo } from 'react';
-// import { Html5QrcodeScanner } from 'html5-qrcode'; // Tu pourras déplacer ça dans un composant ScannerModal plus tard
+
+// Composants
 import { InventoryHeader } from './InventoryHeader';
 import { ProductTable } from './ProductTable';
 import { AddProductModal } from './AddProductModal';
 import { LotTable } from './LotTable';
 import { ProductDetailModal } from './ProductDetailModal';
-import { useInventoryLogic } from '@renderer/app/store/hooks/useInventoryLogic';
+import { RequisitionEditor } from './RequisitionEditor';
+
+// Redux & Logic
+import { useInventoryLogic } from '@renderer/hooks/useInventoryLogic';
 import { createProduct } from '@renderer/app/store/slice/inventorySlice';
 import { CATEGORIES, UIMedication } from '../features/inventory/types';
+
 
 const Inventory: React.FC = () => {
   // Logic Hook
@@ -17,7 +22,10 @@ const Inventory: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'ai'>('stock');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
+
+  // Modals State
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showRequisitionEditor, setShowRequisitionEditor] = useState(false) // État pour l'entrée de stock
   const [showScanner, setShowScanner] = useState(false);
   const [selectedMed, setSelectedMed] = useState<UIMedication | null>(null);
 
@@ -37,16 +45,52 @@ const Inventory: React.FC = () => {
       name: data.name,
       code: data.code,
       category: data.category,
+      dci: data.dci,
+      form: data.form,
       dosage: data.dosage,
-      sellPrice: Number(data.price),
+      packaging: data.packaging,
+      sellPrice: Number(data.sellPrice),
       buyingPrice: Number(data.buyingPrice),
-      minStock: Number(data.threshold),
+      minStock: Number(data.minStock),
+      isPrescriptionRequired: data.isPrescriptionRequired
     };
     await dispatch(createProduct(productData));
     setShowAddModal(false);
   };
 
-  if (isLoading && enrichedMeds.length === 0) return <div className="p-10 text-center">Chargement...</div>;
+  // 1. ÉTAT DE CHARGEMENT INITIAL (Squelette ou Spinner)
+  if (isLoading && enrichedMeds.length === 0) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center flex-col gap-4">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-sky-600 rounded-full animate-spin"></div>
+        <p className="text-slate-400 font-medium animate-pulse">Initialisation de l'inventaire...</p>
+      </div>
+    );
+  }
+
+  // 2. ÉTAT VIDE (EMPTY STATE) - Si aucun produit n'existe du tout
+  if (!isLoading && enrichedMeds.length === 0 && !searchTerm) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
+        <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2">
+          <span className="text-4xl">📦</span>
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Votre stock est vide</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Commencez par référencer vos premiers médicaments pour activer la gestion d'inventaire.</p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="px-8 py-4 bg-sky-600 text-white font-black rounded-2xl shadow-xl hover:bg-sky-500 transition-all flex items-center gap-3"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+          Créer mon premier produit
+        </button>
+        {/* On laisse quand même le modal accessible */}
+        {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onSubmit={handleCreate} />}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-10">
@@ -55,12 +99,13 @@ const Inventory: React.FC = () => {
       <InventoryHeader
         onScan={() => setShowScanner(true)}
         onNew={() => setShowAddModal(true)}
+        onSupply={() => setShowRequisitionEditor(true)} // On ouvre l'éditeur complet
       />
 
       {/* 2. Controls (Search + Tabs + Categories) */}
-      {/* J'ai inline le code ici pour que ça marche direct, mais tu peux le sortir en composant */}
       <div className="flex flex-col gap-6 bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl md:rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
         <div className="flex flex-col lg:flex-row gap-6">
+          {/* Barre de recherche */}
           <div className="relative flex-1 group">
             <input
               type="text"
@@ -71,6 +116,8 @@ const Inventory: React.FC = () => {
             />
             <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
           </div>
+
+          {/* Onglets (Tabs) */}
           <div className="flex bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl md:rounded-[1.8rem] w-full lg:w-fit overflow-x-auto no-scrollbar">
             {[{ id: 'stock', label: 'Médocs', icon: '📦' }, { id: 'lots', label: 'Lots', icon: '🏷️' }, { id: 'ai', label: 'IA', icon: '✨' }].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-slate-900 dark:bg-sky-600 text-white shadow-xl' : 'text-slate-400 hover:bg-white dark:hover:bg-slate-700'}`}>
@@ -79,6 +126,8 @@ const Inventory: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Catégories */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {CATEGORIES.map(cat => (
             <button key={cat} onClick={() => setSelectedCategory(cat)} className={`flex-none px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border ${selectedCategory === cat ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 border-sky-200' : 'bg-white dark:bg-slate-900 text-slate-400 border-slate-100'}`}>{cat}</button>
@@ -86,20 +135,29 @@ const Inventory: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Content Area */}
+      {/* 3. Content Area (Tableaux) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl md:rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors animate-in slide-in-from-bottom-4 duration-500">
         <div className="overflow-x-auto custom-scrollbar">
           {activeTab === 'stock' && <ProductTable medications={filteredMedications} onSelect={setSelectedMed} />}
           {activeTab === 'lots' && <LotTable medications={filteredMedications} />}
-          {activeTab === 'ai' && <div className="p-10 text-center">Module IA en cours de chargement...</div>}
+          {activeTab === 'ai' && <div className="p-10 text-center text-slate-400">Module IA en cours de chargement...</div>}
         </div>
       </div>
 
       {/* 4. Modals */}
       {showAddModal && <AddProductModal onClose={() => setShowAddModal(false)} onSubmit={handleCreate} />}
+      {showRequisitionEditor && (
+        <RequisitionEditor
+          onClose={() => setShowRequisitionEditor(false)}
+          onSuccess={() => {
+            setShowRequisitionEditor(false);
+            // Optionnel : Basculer sur un onglet "Réquisitions" pour voir les brouillons
+          }}
+        />
+      )}
       {selectedMed && <ProductDetailModal medication={selectedMed} onClose={() => setSelectedMed(null)} />}
 
-      {/* 5. Scanner (Peut aussi être extrait) */}
+      {/* 5. Scanner */}
       {showScanner && (
         <div className="fixed inset-0 z-[100] bg-slate-900/90 flex flex-col items-center justify-center p-4">
           <div id="reader" className="w-full max-w-sm bg-white rounded-xl overflow-hidden"></div>

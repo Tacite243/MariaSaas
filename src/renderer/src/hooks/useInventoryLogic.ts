@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import QRCode from 'qrcode';
 import { AppDispatch, RootState } from '@renderer/app/store/store';
 import { fetchProducts } from '@renderer/app/store/slice/inventorySlice';
-import { UIMedication } from '../../../features/inventory/types';
+import { UIMedication } from '../features/inventory/types';
 
 export const useInventoryLogic = () => {
   const dispatch = useDispatch<AppDispatch>();

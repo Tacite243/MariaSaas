@@ -33,7 +33,18 @@ export class InventoryService {
         const existing = await prisma.product.findUnique({ where: { code: data.code } });
         if (existing) throw new Error(`Le code ${data.code} est déjà attribué au produit "${existing.name}"`);
 
-        return await prisma.product.create({ data });
+        // Protection Métier : Le stock initial est TOUJOURS 0
+        // On force la suppression de tout champ 'quantity' ou 'currentStock' parasite
+        const { quantity, currentStock, ...cleanData } = data;
+
+        return await prisma.product.create({
+            data: {
+                ...cleanData,
+                currentStock: 0, // Force à 0
+                buyingPrice: cleanData.buyingPrice || 0, // Prix de référence seulement
+                sellPrice: cleanData.sellPrice || 0
+            }
+        });
     }
 
     async getAllProducts() {
