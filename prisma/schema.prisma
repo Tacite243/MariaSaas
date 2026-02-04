@@ -21,6 +21,7 @@ model User {
 
   createdRequisitions Requisition[]
   sales               Sale[] // Relation inverse ajoutée (Vendeur)
+  exchangeRates       ExchangeRate[]
 }
 
 // --- GESTION DE STOCK ---
@@ -146,6 +147,9 @@ model Sale {
 
   items SaleItem[]
 
+  currency     String @default("CDF") // CDF ou USD
+  exchangeRate Float  @default(1) // Taux utilisé lors de la vente (pour figer la valeur)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -166,4 +170,13 @@ model SaleItem {
   costPrice Float
   taxRate   Float @default(0)
   total     Float
+}
+
+// Taux de change (Historique)
+model ExchangeRate {
+  id      String   @id @default(uuid())
+  rate    Float // 1 USD = X CDF
+  date    DateTime @default(now())
+  setById String
+  setBy   User     @relation(fields: [setById], references: [id])
 }

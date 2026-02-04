@@ -30,7 +30,10 @@ declare global {
       };
       sales: {
         create: (data: CreateSaleInput) => Promise<ApiResponse<any>>;
-      }
+      };
+      finance: {
+        getLatestRate: () => Promise<ApiResponse<any>>;
+      };
     }
   }
 }

@@ -25,6 +25,9 @@ const api = {
   },
   sales: {
     create: (data) => ipcRenderer.invoke('sales:create', data),
+  },
+  finance: {
+    getLatestRate: () => ipcRenderer.invoke('finance:getLatestRate'),
   }
 }
 
