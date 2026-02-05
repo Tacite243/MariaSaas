@@ -7,6 +7,8 @@ import { setupUserHandlers } from './ipc/users';
 import { authService } from './services/authService';
 import { setupInventoryHandlers } from './ipc/inventory';
 import { setupSalesHandlers } from './ipc/sales';
+import { setupStatsHandlers } from './ipc/stats';
+import { setupFinanceHandlers } from './ipc/finance';
 
 
 // --- CONFIGURATION LINUX "BUNKER" ---
@@ -98,7 +100,8 @@ app.whenReady().then(async () => {
   setupUserHandlers();
   setupInventoryHandlers();
   setupSalesHandlers();
-
+  setupStatsHandlers();
+  setupFinanceHandlers();
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {
     createWindow();

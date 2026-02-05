@@ -29,11 +29,12 @@ const api = {
     create: (data) => ipcRenderer.invoke('sales:create', data),
   },
   finance: {
-    getLatestRate: () => ipcRenderer.invoke('finance:getLatestRate'),
+    getRate: () => ipcRenderer.invoke('finance:get-rate'),
+    setRate: (data) => ipcRenderer.invoke('finance:set-rate', data),
   },
   stats: {
     getDashboard: () => ipcRenderer.invoke('stats:get-dashboard')
-  }
+  },
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

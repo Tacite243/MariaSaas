@@ -62,7 +62,7 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect }) => (
 
                         {/* P. Vente */}
                         <td className="px-6 py-5 text-right font-black text-slate-700 dark:text-white text-sm">
-                            {med.price.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">FCFA</span>
+                            {med.price.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">Fc</span>
                         </td>
 
                         {/* Marge */}

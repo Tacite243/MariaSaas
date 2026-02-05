@@ -13,6 +13,7 @@ import { RequisitionList } from './RequisitionList';
 import { useInventoryLogic } from '@renderer/hooks/useInventoryLogic';
 import { createProduct } from '@renderer/app/store/slice/inventorySlice';
 import { CATEGORIES, UIMedication } from '../features/inventory/types';
+import { ProductInput } from '@shared/schemas/inventorySchema';
 
 
 const Inventory: React.FC = () => {
@@ -41,21 +42,8 @@ const Inventory: React.FC = () => {
   }, [searchTerm, enrichedMeds, selectedCategory]);
 
   // Handler Création
-  const handleCreate = async (data: any) => {
-    const productData = {
-      name: data.name,
-      code: data.code,
-      category: data.category,
-      dci: data.dci,
-      form: data.form,
-      dosage: data.dosage,
-      packaging: data.packaging,
-      sellPrice: Number(data.sellPrice),
-      buyingPrice: Number(data.buyingPrice),
-      minStock: Number(data.minStock),
-      isPrescriptionRequired: data.isPrescriptionRequired
-    };
-    await dispatch(createProduct(productData));
+  const handleCreate = async (data: ProductInput) => {
+    await dispatch(createProduct(data));
     setShowAddModal(false);
   };
 

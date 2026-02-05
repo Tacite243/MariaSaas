@@ -24,7 +24,7 @@ export const CartPanel: React.FC<Props> = ({
 
 
     const handleCheckoutClick = () => {
-        if (confirm(`Confirmer la vente de ${subTotal.toLocaleString()} FCFA ?`)) {
+        if (confirm(`Confirmer la vente de ${subTotal.toLocaleString()} Fc ?`)) {
             onCheckout();
         }
     };
@@ -110,7 +110,7 @@ export const CartPanel: React.FC<Props> = ({
                     </div>
                     <div className="flex justify-between items-end">
                         <span className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">{subTotal.toLocaleString()}</span>
-                        <span className="text-sm font-bold text-slate-400 mb-1.5">FCFA</span>
+                        <span className="text-sm font-bold text-slate-400 mb-1.5">Fc</span>
                     </div>
                 </div>
 
