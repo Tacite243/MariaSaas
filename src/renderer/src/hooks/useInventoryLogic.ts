@@ -22,14 +22,29 @@ export const useInventoryLogic = () => {
       const mapped: UIMedication[] = products.map(p => ({
         id: p.id,
         name: p.name,
+        dci: p.dci || undefined, // Mapping
         code: p.code || 'N/A',
+        codeCip7: p.codeCip7 || undefined, // Mapping
+        codeAtc: p.codeAtc || undefined, // Mapping
+
         category: p.category || 'Générique',
+        form: p.form || undefined, // Mapping
         dosage: p.dosage || 'N/A',
-        price: p.sellPrice,
+        packaging: p.packaging || undefined, // Mapping
+        description: p.description || undefined,
+        isPrescriptionRequired: p.isPrescriptionRequired || false,
+
+        sellPrice: p.sellPrice,
         buyingPrice: p.buyingPrice,
-        threshold: p.minStock,
+        vatRate: p.vatRate || 0,
+
+        minStock: p.minStock,
+        maxStock: p.maxStock || undefined,
         currentStock: p.currentStock,
-        lots: p.lots.map(l => ({ ...l, expiryDate: new Date(l.expiryDate).toISOString() })), // Simplification date
+        location: p.location || undefined,
+
+        lots: p.lots.map(l => ({ ...l, expiryDate: new Date(l.expiryDate).toISOString() })),
+        qrCode: undefined
       }));
 
       // 2. Génération QR

@@ -1,35 +1,44 @@
 import { z } from 'zod';
 
-// Produit
+// Produit (Mise à jour complète)
 export const productSchema = z.object({
     name: z.string().min(2, "Nom obligatoire"),
-    dci: z.string().optional(), // Molécule
-    code: z.string().optional(), // Si vide, le backend générera
 
+    // Nouveaux champs d'identification
+    dci: z.string().optional(),
+    code: z.string().optional(),
+    codeCip7: z.string().optional(),
+    codeAtc: z.string().optional(),
+
+    // Caractéristiques
     category: z.string().default("Générique"),
     form: z.string().optional(),
     dosage: z.string().optional(),
     packaging: z.string().optional(),
+    description: z.string().optional(),
+    isPrescriptionRequired: z.boolean().default(false),
 
+    // Stock & Logistique
     minStock: z.number().min(0).default(5),
     maxStock: z.number().min(0).optional(),
     location: z.string().optional(),
 
+    // Prix
     sellPrice: z.number().min(0, "Prix de vente invalide"),
     buyingPrice: z.number().min(0).default(0),
-    isPrescriptionRequired: z.boolean().default(false)
+    vatRate: z.number().min(0).default(0)
 });
 
-// Ligne de réquisition
+// Ligne de réquisition (Inchangé)
 export const requisitionItemSchema = z.object({
     productId: z.string().uuid(),
     quantity: z.number().int().positive("Quantité doit être > 0"),
     buyPrice: z.number().min(0),
     batchNumber: z.string().optional(),
-    expiryDate: z.coerce.date().optional() // 'coerce' permet de transformer une string ISO en Date
+    expiryDate: z.coerce.date().optional()
 });
 
-// Création d'une réquisition (Entête)
+// Entête réquisition (Inchangé)
 export const createRequisitionSchema = z.object({
     supplierId: z.string().uuid("Fournisseur requis"),
     createdById: z.string().uuid(),

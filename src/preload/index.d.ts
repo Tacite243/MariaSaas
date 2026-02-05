@@ -6,6 +6,14 @@ import { ProductInput, CreateRequisitionInput } from '../shared/schemas/inventor
 import { CreateSaleInput } from '@shared/schemas/salesSchema';
 
 
+interface DashboardStats {
+  revenueToday: number;
+  salesCount: number;
+  lowStockCount: number;
+  stockValue: number;
+  recentSales: any[]; // Typage à affiner selon la structure des ventes
+}
+
 declare global {
   interface Window {
     electron: ElectronAPI
@@ -34,6 +42,9 @@ declare global {
       finance: {
         getLatestRate: () => Promise<ApiResponse<any>>;
       };
+      stats: {
+        getDashboard: () => Promise<ApiResponse<DashboardStats>>;
+      }
     }
   }
 }

@@ -3,6 +3,8 @@ import { electronAPI } from '@electron-toolkit/preload'
 import { LoginInput } from '../shared/schemas/authSchema'
 import { CreateUserInput, UpdateUserInput } from '@shared/schemas/userSchema'
 
+
+
 // Api typée
 const api = {
   auth: {
@@ -28,6 +30,9 @@ const api = {
   },
   finance: {
     getLatestRate: () => ipcRenderer.invoke('finance:getLatestRate'),
+  },
+  stats: {
+    getDashboard: () => ipcRenderer.invoke('stats:get-dashboard')
   }
 }
 

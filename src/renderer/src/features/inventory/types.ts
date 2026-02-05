@@ -1,3 +1,4 @@
+// Interface UI alignée avec Prisma
 export interface UILot {
     id: string;
     batchNumber: string;
@@ -8,14 +9,33 @@ export interface UILot {
 
 export interface UIMedication {
     id: string;
+
+    // Identification
     name: string;
+    dci?: string; // Ajouté
     code: string;
+    codeCip7?: string; // Ajouté
+    codeAtc?: string; // Ajouté
+
+    // Caractéristiques
     category: string;
-    dosage: string;
-    price: number;
+    form?: string; // Ajouté
+    dosage?: string; // Ajouté
+    packaging?: string; // Ajouté
+    description?: string;
+    isPrescriptionRequired: boolean; // Ajouté
+
+    // Stock & Prix
+    currentStock: number;
+    minStock: number;
+    maxStock?: number; // Ajouté
+    location?: string; // Ajouté
+
+    sellPrice: number;
     buyingPrice: number;
-    threshold: number;
-    currentStock: number; // Stock calculé ou direct
+    vatRate: number; // Ajouté
+
+    // Relations UI
     lots: UILot[];
     qrCode?: string;
 }

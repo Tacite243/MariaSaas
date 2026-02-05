@@ -13,14 +13,28 @@ export interface ProductLot {
 export interface Product {
     id: string;
     name: string;
+    dci?: string; // NEW
     code: string;
+    codeCip7?: string; // NEW
+    codeAtc?: string; // NEW
+
     category: string;
-    dosage: string;
+    form?: string; // NEW
+    dosage?: string; // NEW
+    packaging?: string; // NEW
+    description?: string; // NEW
+    isPrescriptionRequired: boolean; // NEW
+
     currentStock: number;
     minStock: number;
+    maxStock?: number; // NEW
+    location?: string; // NEW
+
     sellPrice: number;
     buyingPrice: number;
-    lots: ProductLot[]; // Relation incluse
+    vatRate: number; // NEW
+
+    lots: ProductLot[];
 }
 
 export interface Requisition {
