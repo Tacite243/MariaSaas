@@ -12,7 +12,7 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev",
+    "dev": "XDG_SESSION_TYPE=x11 electron-vite dev",
     "build": "npm run db:generate && tsc && electron-vite build",
     "migration": "npx prisma migrate dev --name init",
     "build:unpack": "npm run build && electron-builder --dir",

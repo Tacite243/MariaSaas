@@ -3,6 +3,7 @@ import themeReducer from './slice/themeSlice'
 import authReducer from './slice/authSlice'
 import inventoryReducer from './slice/inventorySlice'
 import salesReducer from './slice/salesSlice'
+import sessionReducer from './slice/sessionSlice'
 
 
 // --- MIDDLEWARE DE PERSISTANCE ---
@@ -35,6 +36,7 @@ export const store = configureStore({
         auth: authReducer,
         inventory: inventoryReducer,
         sales: salesReducer,
+        session: sessionReducer
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(persistenceMiddleware),

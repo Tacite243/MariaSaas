@@ -7,6 +7,7 @@ import { AddProductModal } from './AddProductModal';
 import { LotTable } from './LotTable';
 import { ProductDetailModal } from './ProductDetailModal';
 import { RequisitionEditor } from './RequisitionEditor';
+import { RequisitionList } from './RequisitionList';
 
 // Redux & Logic
 import { useInventoryLogic } from '@renderer/hooks/useInventoryLogic';
@@ -19,7 +20,7 @@ const Inventory: React.FC = () => {
   const { enrichedMeds, isLoading, dispatch } = useInventoryLogic();
 
   // State UI Local
-  const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'ai'>('stock');
+  const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'orders' | 'ai'>('stock');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Tous');
 
@@ -119,7 +120,7 @@ const Inventory: React.FC = () => {
 
           {/* Onglets (Tabs) */}
           <div className="flex bg-slate-50 dark:bg-slate-800 p-1.5 rounded-2xl md:rounded-[1.8rem] w-full lg:w-fit overflow-x-auto no-scrollbar">
-            {[{ id: 'stock', label: 'Médocs', icon: '📦' }, { id: 'lots', label: 'Lots', icon: '🏷️' }, { id: 'ai', label: 'IA', icon: '✨' }].map(tab => (
+            {[{ id: 'stock', label: 'Médocs', icon: '📦' }, { id: 'lots', label: 'Lots', icon: '🏷️' }, { id: 'orders', label: 'Commandes', icon: '📋' }, { id: 'ai', label: 'IA', icon: '✨' }].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 lg:flex-none px-4 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-slate-900 dark:bg-sky-600 text-white shadow-xl' : 'text-slate-400 hover:bg-white dark:hover:bg-slate-700'}`}>
                 <span>{tab.icon}</span><span>{tab.label}</span>
               </button>
@@ -140,6 +141,7 @@ const Inventory: React.FC = () => {
         <div className="overflow-x-auto custom-scrollbar">
           {activeTab === 'stock' && <ProductTable medications={filteredMedications} onSelect={setSelectedMed} />}
           {activeTab === 'lots' && <LotTable medications={filteredMedications} />}
+          {activeTab === 'orders' && <RequisitionList />}
           {activeTab === 'ai' && <div className="p-10 text-center text-slate-400">Module IA en cours de chargement...</div>}
         </div>
       </div>

@@ -1,4 +1,7 @@
 import React from 'react';
+import { toggleCurrency } from '@renderer/app/store/slice/sessionSlice';
+import { useCurrency } from '@renderer/hooks/useCurrently';
+import { useDispatch } from 'react-redux';
 
 interface Props {
     cart: any[];
@@ -16,6 +19,10 @@ export const CartPanel: React.FC<Props> = ({
     cart, subTotal, paymentMethod, isLoading, error,
     onRemove, onUpdateQty, onSetMethod, onCheckout
 }) => {
+    const dispatch = useDispatch();
+    const { currency } = useCurrency(); // On récupère la devise courante
+
+
     const handleCheckoutClick = () => {
         if (confirm(`Confirmer la vente de ${subTotal.toLocaleString()} FCFA ?`)) {
             onCheckout();
@@ -33,6 +40,18 @@ export const CartPanel: React.FC<Props> = ({
                 </div>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Ticket #{new Date().getTime().toString().slice(-6)}</p>
             </div>
+
+            {/* BOUTON DEVISE (Déplacé ici pour être visible en haut) */}
+            <button
+                onClick={() => dispatch(toggleCurrency())}
+                className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-all shadow-sm"
+            >
+                <span className={`text-[10px] font-black ${currency === 'CDF' ? 'text-sky-600' : 'text-slate-400'}`}>CDF</span>
+                <div className="w-8 h-4 bg-slate-100 dark:bg-slate-800 rounded-full relative border border-slate-200 dark:border-slate-600">
+                    <div className={`absolute top-0.5 w-3 h-3 bg-slate-400 dark:bg-white shadow-sm rounded-full transition-all ${currency === 'USD' ? 'left-4 bg-emerald-500' : 'left-0.5'}`}></div>
+                </div>
+                <span className={`text-[10px] font-black ${currency === 'USD' ? 'text-emerald-500' : 'text-slate-400'}`}>USD</span>
+            </button>
 
             {/* Liste */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
@@ -74,8 +93,8 @@ export const CartPanel: React.FC<Props> = ({
                             key={method}
                             onClick={() => onSetMethod(method)}
                             className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${paymentMethod === method
-                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg scale-105'
-                                    : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg scale-105'
+                                : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                         >
                             {method === 'MOBILE_MONEY' ? 'Mobile' : method}

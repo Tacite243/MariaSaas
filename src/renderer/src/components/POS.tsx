@@ -35,7 +35,6 @@ const POS: React.FC = () => {
           onCheckout={actions.checkout}
         />
       </div>
-
     </div>
   );
 };
