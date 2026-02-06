@@ -13,26 +13,26 @@ export interface ProductLot {
 export interface Product {
     id: string;
     name: string;
-    dci?: string; // NEW
+    dci?: string;
     code: string;
-    codeCip7?: string; // NEW
-    codeAtc?: string; // NEW
+    codeCip7?: string;
+    codeAtc?: string;
 
     category: string;
-    form?: string; // NEW
-    dosage?: string; // NEW
-    packaging?: string; // NEW
-    description?: string; // NEW
-    isPrescriptionRequired: boolean; // NEW
+    form?: string;
+    dosage?: string;
+    packaging?: string;
+    description?: string;
+    isPrescriptionRequired: boolean;
 
     currentStock: number;
     minStock: number;
-    maxStock?: number; // NEW
-    location?: string; // NEW
+    maxStock?: number;
+    location?: string;
 
     sellPrice: number;
     buyingPrice: number;
-    vatRate: number; // NEW
+    vatRate: number;
 
     lots: ProductLot[];
 }
@@ -77,13 +77,10 @@ export const fetchProducts = createAsyncThunk<Product[], void>(
     async (_, { rejectWithValue }) => {
         try {
             const response = await window.api.inventory.getProducts();
-            if (!response.success) throw new Error(response.error?.message);
-
-            // On force le cast car on sait que le backend renvoie la bonne structure
-            // (Assure-toi que le backend renvoie bien des objets complets)
+            if (!response.success) throw new Error(response.error?.message || 'Erreur inconnue');
             return response.data as Product[];
         } catch (err: any) {
-            return rejectWithValue(err.message);
+            return rejectWithValue(err.message || 'Erreur lors du chargement des produits');
         }
     }
 );
@@ -94,8 +91,26 @@ export const createProduct = createAsyncThunk<Product, ProductInput>(
     async (data, { rejectWithValue }) => {
         try {
             const response = await window.api.inventory.createProduct(data);
-            if (!response.success) throw new Error(response.error?.message);
+            if (!response.success) throw new Error(response.error?.message || 'Erreur création');
             return response.data as Product;
+        } catch (err: any) {
+            return rejectWithValue(err.message);
+        }
+    }
+);
+
+// 3. Supprimer un produit (Nouveau)
+export const deleteProduct = createAsyncThunk<string, string>(
+    'inventory/deleteProduct',
+    async (id, { rejectWithValue }) => {
+        try {
+            // Note: Assure-toi d'ajouter cette méthode dans preload/ IPC
+            // Pour l'instant, on suppose qu'elle existe ou on la rajoutera
+            // Si elle n'existe pas encore, cela va throw.
+            // const response = await window.api.inventory.deleteProduct(id);
+            // if (!response.success) throw new Error(response.error?.message);
+            // return id;
+            throw new Error("Suppression non implémentée backend pour l'instant");
         } catch (err: any) {
             return rejectWithValue(err.message);
         }
@@ -108,7 +123,7 @@ export const createDraftRequisition = createAsyncThunk<Requisition, CreateRequis
     async (data, { rejectWithValue }) => {
         try {
             const response = await window.api.inventory.createDraft(data);
-            if (!response.success) throw new Error(response.error?.message);
+            if (!response.success) throw new Error(response.error?.message || 'Erreur création bon');
             return response.data as Requisition;
         } catch (err: any) {
             return rejectWithValue(err.message);
@@ -121,7 +136,7 @@ export const validateRequisition = createAsyncThunk<Requisition, string>(
     async (id, { rejectWithValue }) => {
         try {
             const response = await window.api.inventory.validateRequisition(id);
-            if (!response.success) throw new Error(response.error?.message);
+            if (!response.success) throw new Error(response.error?.message || 'Erreur validation');
             return response.data as Requisition;
         } catch (err: any) {
             return rejectWithValue(err.message);
@@ -133,7 +148,11 @@ export const validateRequisition = createAsyncThunk<Requisition, string>(
 const inventorySlice = createSlice({
     name: 'inventory',
     initialState,
-    reducers: {},
+    reducers: {
+        clearError: (state) => {
+            state.error = null;
+        }
+    },
     extraReducers: (builder) => {
         builder
             // Fetch Products
@@ -150,14 +169,37 @@ const inventorySlice = createSlice({
                 state.error = action.payload as string;
             })
 
-            // Create Product (Optimistic update ou re-fetch)
-            .addCase(createProduct.fulfilled, (state, action: PayloadAction<Product>) => {
-                state.products.push(action.payload); // Ajout immédiat à la liste
+            // Create Product
+            .addCase(createProduct.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
             })
-            // Requisitions (On ne stocke pas les réquisitions dans le state pour l'instant, 
-            // mais on gère le loading state si besoin)
+            .addCase(createProduct.fulfilled, (state, action: PayloadAction<Product>) => {
+                state.isLoading = false;
+                state.products.push(action.payload);
+            })
+            .addCase(createProduct.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+
+            // Delete Product
+            .addCase(deleteProduct.fulfilled, (state, action) => {
+                state.products = state.products.filter(p => p.id !== action.payload);
+            })
+
+            // Requisitions
+            .addCase(createDraftRequisition.pending, (state) => {
+                // On ne met pas forcément tout le state inventory en loading pur un draft
+                state.error = null;
+            })
             .addCase(createDraftRequisition.rejected, (state, action) => {
                 state.error = action.payload as string;
+            })
+            .addCase(validateRequisition.fulfilled, (state, action) => {
+                // Si la validation impacte le stock, il faudrait idéalement re-fetcher les produits
+                // ou mettre à jour le stock localement si on a toutes les infos.
+                // Pour simplifier, on peut déclencher un refetch dans le composant ou ici.
             })
             .addCase(validateRequisition.rejected, (state, action) => {
                 state.error = action.payload as string;
@@ -165,4 +207,5 @@ const inventorySlice = createSlice({
     },
 });
 
+export const { clearError } = inventorySlice.actions;
 export default inventorySlice.reducer;

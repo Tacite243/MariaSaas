@@ -1,66 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import QRCode from 'qrcode';
 import { AppDispatch, RootState } from '@renderer/app/store/store';
-import { fetchProducts } from '@renderer/app/store/slice/inventorySlice';
+import { fetchProducts, clearError } from '@renderer/app/store/slice/inventorySlice';
 import { UIMedication } from '../features/inventory/types';
 
 export const useInventoryLogic = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { products, isLoading } = useSelector((state: RootState) => state.inventory);
-  const [enrichedMeds, setEnrichedMeds] = useState<UIMedication[]>([]);
+  const { products, isLoading, error } = useSelector((state: RootState) => state.inventory);
 
-  // Chargement
+  // Chargement initial
   useEffect(() => {
+    // On ne charge que si on n'a pas de produits (ou on pourrait forcer un rafraîchissement)
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  // Mapping et QR Codes
-  useEffect(() => {
-    const mapAndGenerate = async () => {
-      // 1. Mapping Prisma -> UI
-      const mapped: UIMedication[] = products.map(p => ({
-        id: p.id,
-        name: p.name,
-        dci: p.dci || undefined, // Mapping
-        code: p.code || 'N/A',
-        codeCip7: p.codeCip7 || undefined, // Mapping
-        codeAtc: p.codeAtc || undefined, // Mapping
+  // Mapping optimisé avec useMemo
+  // On NE génère PLUS les QR codes ici pour éviter de bloquer le thread
+  const enrichedMeds: UIMedication[] = useMemo(() => {
+    return products.map(p => ({
+      id: p.id,
+      name: p.name,
+      dci: p.dci || undefined,
+      code: p.code || 'N/A',
+      codeCip7: p.codeCip7 || undefined,
+      codeAtc: p.codeAtc || undefined,
 
-        category: p.category || 'Générique',
-        form: p.form || undefined, // Mapping
-        dosage: p.dosage || 'N/A',
-        packaging: p.packaging || undefined, // Mapping
-        description: p.description || undefined,
-        isPrescriptionRequired: p.isPrescriptionRequired || false,
+      category: p.category || 'Générique',
+      form: p.form || undefined,
+      dosage: p.dosage || 'N/A',
+      packaging: p.packaging || undefined,
+      description: p.description || undefined,
+      isPrescriptionRequired: p.isPrescriptionRequired || false,
 
-        sellPrice: p.sellPrice,
-        buyingPrice: p.buyingPrice,
-        vatRate: p.vatRate || 0,
+      sellPrice: p.sellPrice,
+      buyingPrice: p.buyingPrice,
+      vatRate: p.vatRate || 0,
 
-        minStock: p.minStock,
-        maxStock: p.maxStock || undefined,
-        currentStock: p.currentStock,
-        location: p.location || undefined,
+      minStock: p.minStock,
+      maxStock: p.maxStock || undefined,
+      currentStock: p.currentStock,
+      location: p.location || undefined,
 
-        lots: p.lots.map(l => ({ ...l, expiryDate: new Date(l.expiryDate).toISOString() })),
-        qrCode: undefined
-      }));
-
-      // 2. Génération QR
-      const enriched = await Promise.all(mapped.map(async (m) => {
-        try {
-          const qr = await QRCode.toDataURL(m.code || m.id);
-          return { ...m, qrCode: qr };
-        } catch { return m; }
-      }));
-      setEnrichedMeds(enriched);
-    };
-
-    if (products.length > 0 || !isLoading) {
-      mapAndGenerate();
-    }
+      lots: p.lots.map(l => ({ ...l, expiryDate: new Date(l.expiryDate).toISOString() })),
+      qrCode: undefined // Sera généré à la demande dans le détail produit
+    }));
   }, [products]);
 
-  return { enrichedMeds, isLoading, dispatch };
+  const refresh = useCallback(() => {
+    dispatch(fetchProducts());
+  }, [dispatch]);
+
+  const dismissError = useCallback(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  return { enrichedMeds, isLoading, error, refresh, dismissError, dispatch };
 };

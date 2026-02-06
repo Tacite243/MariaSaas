@@ -100,6 +100,27 @@ export class SalesService {
             return sale;
         });
     }
+
+    async getSalesHistory(startDate?: Date, endDate?: Date) {
+        const where: any = {};
+
+        if (startDate && endDate) {
+            where.date = {
+                gte: startDate,
+                lte: endDate
+            };
+        }
+
+        return await prisma.sale.findMany({
+            where,
+            include: {
+                seller: { select: { name: true } },
+                items: { include: { product: { select: { name: true } } } }
+            },
+            orderBy: { date: 'desc' },
+            take: (startDate && endDate) ? undefined : 100 // Pas de limite si filtre date
+        });
+    }
 }
 
 export const salesService = new SalesService();

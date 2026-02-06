@@ -39,10 +39,13 @@ declare global {
       };
       sales: {
         create: (data: CreateSaleInput) => Promise<ApiResponse<any>>;
+        getHistory: (filter?: { from: Date | string; to: Date | string }) => Promise<ApiResponse<any[]>>;
       };
       finance: {
         getRate: () => Promise<ApiResponse<number>>;
         setRate: (data: { rate: number; userId: string }) => Promise<ApiResponse<void>>;
+        getHistory: (filter?: { from: Date | string; to: Date | string }) => Promise<ApiResponse<any[]>>;
+        createMovement: (data: any) => Promise<ApiResponse<any>>;
       };
       stats: {
         getDashboard: () => Promise<ApiResponse<any>>;

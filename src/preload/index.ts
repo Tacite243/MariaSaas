@@ -27,10 +27,13 @@ const api = {
   },
   sales: {
     create: (data) => ipcRenderer.invoke('sales:create', data),
+    getHistory: (filter) => ipcRenderer.invoke('sales:history', filter),
   },
   finance: {
     getRate: () => ipcRenderer.invoke('finance:get-rate'),
     setRate: (data) => ipcRenderer.invoke('finance:set-rate', data),
+    getHistory: (filter) => ipcRenderer.invoke('finance:get-history', filter),
+    createMovement: (data) => ipcRenderer.invoke('finance:create-movement', data),
   },
   stats: {
     getDashboard: () => ipcRenderer.invoke('stats:get-dashboard')

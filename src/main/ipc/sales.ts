@@ -12,4 +12,12 @@ export function setupSalesHandlers() {
             return await salesService.processSale(input);
         })
     );
+
+    ipcMain.handle('sales:history', async (_event, filter?: { from: Date | string, to: Date | string }) => {
+        const startDate = filter?.from ? new Date(filter.from) : undefined;
+        const endDate = filter?.to ? new Date(filter.to) : undefined;
+
+        const data = await salesService.getSalesHistory(startDate, endDate);
+        return { success: true, data };
+    });
 }

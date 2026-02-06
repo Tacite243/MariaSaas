@@ -1,11 +1,20 @@
-
-import React, { useState } from 'react';
-import { cashJournalService } from '../services/cashJournalService';
-import { CashMovementType, CashCategory } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../app/store/store';
+import { CashMovementType, CashCategory, CashMovement } from '../types';
 
 const CashJournal: React.FC = () => {
+    // const dispatch = useDispatch<AppDispatch>(); // Unused
+    const { lastSaleId } = useSelector((state: RootState) => state.sales); // Rafraichir après une vente
+    const { user } = useSelector((state: RootState) => state.auth);
+
+    // État local pour le journal unifié (Ventes + Mouvements)
+    const [history, setHistory] = useState<CashMovement[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+
     const [showModal, setShowModal] = useState(false);
     const [filter, setFilter] = useState<CashMovementType | 'ALL'>('ALL');
+
     const [newMovement, setNewMovement] = useState({
         type: CashMovementType.OUT,
         category: CashCategory.OTHER,
@@ -13,24 +22,75 @@ const CashJournal: React.FC = () => {
         description: ''
     });
 
-    const movements = cashJournalService.getMovements().filter(m => filter === 'ALL' || m.type === filter);
-    const totals = cashJournalService.getTotals();
+    // 1. Charger l'historique unifié (Aujourd'hui par défaut)
+    const loadDailyData = async () => {
+        setIsLoading(true);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
 
-    const handleAdd = (e: React.FormEvent) => {
+        try {
+            const res = await window.api.finance.getHistory({ from: today, to: endOfToday });
+            if (res.success && res.data) {
+                setHistory(res.data);
+            }
+        } catch (error) {
+            console.error("Erreur chargement journal:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDailyData();
+    }, [lastSaleId]); // Rafraichir si une vente a lieu
+
+    const filteredMovements = history.filter(m => filter === 'ALL' || m.type === filter);
+
+    // 2. Calculer les Totaux
+    const totals = useMemo(() => {
+        return history.reduce(
+            (acc, m) => {
+                if (m.type === CashMovementType.IN) acc.in += m.amount;
+                else acc.out += m.amount;
+                acc.balance = acc.in - acc.out;
+                return acc;
+            },
+            { in: 0, out: 0, balance: 0 }
+        );
+    }, [history]);
+
+    const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newMovement.amount <= 0) return;
+        if (!user?.id) {
+            console.error("Utilisateur non connecté");
+            return;
+        }
 
-        cashJournalService.addMovement({
-            ...newMovement,
-            performedBy: 'JD (Caisse)'
-        });
-        setShowModal(false);
-        setNewMovement({ type: CashMovementType.OUT, category: CashCategory.OTHER, amount: 0, description: '' });
+        try {
+            // Appel API pour persistance
+            const payload = {
+                ...newMovement,
+                performedById: user.id
+            };
+
+            await window.api.finance.createMovement(payload);
+
+            // Rafraichir les données
+            await loadDailyData();
+
+            setShowModal(false);
+            setNewMovement({ type: CashMovementType.OUT, category: CashCategory.OTHER, amount: 0, description: '' });
+        } catch (error) {
+            console.error("Erreur création mouvement:", error);
+        }
     };
 
     const handleExportCSV = () => {
         const headers = ['ID', 'Date', 'Type', 'Categorie', 'Description', 'Montant', 'Utilisateur'];
-        const rows = movements.map(m => [
+        const rows = filteredMovements.map(m => [
             m.id,
             new Date(m.timestamp).toLocaleString(),
             m.type,
@@ -64,6 +124,13 @@ const CashJournal: React.FC = () => {
                     <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] mt-2">Suivi des flux financiers • MariaSaas Ledger</p>
                 </div>
                 <div className="flex gap-3">
+                    <button
+                        onClick={loadDailyData}
+                        className="p-4 bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-sky-600 rounded-2xl transition-all"
+                        title="Actualiser"
+                    >
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15" /></svg>
+                    </button>
                     <button
                         onClick={handleExportCSV}
                         className="px-6 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 font-black rounded-2xl shadow-sm active:scale-95 transition-all flex items-center gap-3 uppercase text-[10px] tracking-widest"
@@ -131,7 +198,13 @@ const CashJournal: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {movements.map(m => (
+                            {isLoading && filteredMovements.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-bold animate-pulse">
+                                        Chargement des opérations...
+                                    </td>
+                                </tr>
+                            ) : filteredMovements.map(m => (
                                 <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
@@ -141,8 +214,8 @@ const CashJournal: React.FC = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${m.type === CashMovementType.IN
-                                                ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30'
-                                                : 'bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/30'
+                                            ? 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30'
+                                            : 'bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/30'
                                             }`}>
                                             {m.category.replace('_', ' ')}
                                         </span>
@@ -156,7 +229,7 @@ const CashJournal: React.FC = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {movements.length === 0 && (
+                            {!isLoading && filteredMovements.length === 0 && (
                                 <tr>
                                     <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-black uppercase text-[10px] tracking-widest italic">
                                         Aucun mouvement enregistré pour cette période

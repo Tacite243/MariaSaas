@@ -8,6 +8,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 // --- UTILISATEURS ---
 model User {
   id        String    @id @default(uuid())
@@ -22,6 +24,7 @@ model User {
   createdRequisitions Requisition[]
   sales               Sale[] // Relation inverse ajoutée (Vendeur)
   exchangeRates       ExchangeRate[]
+  cashMovements       CashMovement[]
 }
 
 // --- GESTION DE STOCK ---
@@ -179,4 +182,20 @@ model ExchangeRate {
   date    DateTime @default(now())
   setById String
   setBy   User     @relation(fields: [setById], references: [id])
+}
+
+// --- FINANCE & CAISSE ---
+model CashMovement {
+  id          String   @id @default(uuid())
+  type        String // IN, OUT
+  category    String // SALES, DEBT_PAYMENT, etc.
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+
+  performedById String
+  performedBy   User   @relation(fields: [performedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

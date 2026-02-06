@@ -24,9 +24,9 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect }) => (
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {medications.map(med => {
-                const isLow = med.currentStock <= med.threshold;
-                const margin = med.price - med.buyingPrice;
-                const marginPercent = med.price > 0 ? ((margin / med.price) * 100).toFixed(0) : 0;
+                const isLow = med.currentStock <= med.minStock;
+                const margin = med.sellPrice - med.buyingPrice;
+                const marginPercent = med.sellPrice > 0 ? ((margin / med.sellPrice) * 100).toFixed(0) : 0;
 
                 return (
                     <tr key={med.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all group">
@@ -62,7 +62,7 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect }) => (
 
                         {/* P. Vente */}
                         <td className="px-6 py-5 text-right font-black text-slate-700 dark:text-white text-sm">
-                            {med.price.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">Fc</span>
+                            {med.sellPrice.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">Fc</span>
                         </td>
 
                         {/* Marge */}

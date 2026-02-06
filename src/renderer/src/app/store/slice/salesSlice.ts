@@ -3,21 +3,33 @@ import { CreateSaleInput, CartItemInput } from '@shared/schemas/salesSchema';
 import { RootState } from '../store';
 
 // Type pour un article dans le panier (UI)
-// On étend l'input standard pour ajouter des infos d'affichage (Nom, Stock max...)
 export interface CartItemUI extends CartItemInput {
     name: string;
     code: string;
-    maxStock: number; // Pour bloquer si on demande plus que dispo
+    maxStock: number;
+}
+
+// Type partiel pour l'affichage historique
+export interface SaleHistoryItem {
+    id: string;
+    reference: string;
+    date: string;
+    totalAmount: number;
+    paymentMethod: string;
+    seller: { name: string };
+    items: { product: { name: string } }[];
 }
 
 export interface SalesState {
     cart: CartItemUI[];
-    currentCustomer: string | null; // ID du client (optionnel pour l'instant)
+    currentCustomer: string | null;
     paymentMethod: 'CASH' | 'MOBILE_MONEY' | 'CARD' | 'INSURANCE';
     discount: number;
     isLoading: boolean;
     error: string | null;
-    lastSaleId: string | null; // Pour imprimer le ticket après succès
+    lastSaleId: string | null;
+
+    history: SaleHistoryItem[]; // NEW: Historique des ventes
 }
 
 const initialState: SalesState = {
@@ -27,7 +39,8 @@ const initialState: SalesState = {
     discount: 0,
     isLoading: false,
     error: null,
-    lastSaleId: null
+    lastSaleId: null,
+    history: []
 };
 
 // --- THUNK : VALIDER LA VENTE ---
@@ -41,7 +54,6 @@ export const processCheckout = createAsyncThunk(
         if (!user) return rejectWithValue("Vendeur non identifié");
         if (cart.length === 0) return rejectWithValue("Panier vide");
 
-        // Préparation du payload conforme au schéma Zod
         const payload: CreateSaleInput = {
             sellerId: user.id,
             clientId: currentCustomer || undefined,
@@ -57,7 +69,21 @@ export const processCheckout = createAsyncThunk(
         try {
             const response = await window.api.sales.create(payload);
             if (!response.success) throw new Error(response.error?.message);
-            return response.data; // Renvoie l'objet Sale créé
+            return response.data;
+        } catch (err: any) {
+            return rejectWithValue(err.message);
+        }
+    }
+);
+
+// --- THUNK : RECUPERER L'HISTORIQUE ---
+export const fetchSalesHistory = createAsyncThunk(
+    'sales/fetchHistory',
+    async (dateRange: { from: Date | string, to: Date | string } | undefined, { rejectWithValue }) => {
+        try {
+            const response = await window.api.sales.getHistory(dateRange);
+            if (!response.success) throw new Error(response.error?.message);
+            return response.data as SaleHistoryItem[];
         } catch (err: any) {
             return rejectWithValue(err.message);
         }
@@ -68,11 +94,9 @@ const salesSlice = createSlice({
     name: 'sales',
     initialState,
     reducers: {
-        // Ajouter au panier
         addToCart: (state, action: PayloadAction<CartItemUI>) => {
             const existing = state.cart.find(i => i.productId === action.payload.productId);
             if (existing) {
-                // On incrémente si ça ne dépasse pas le stock
                 if (existing.quantity < existing.maxStock) {
                     existing.quantity += 1;
                 }
@@ -80,24 +104,19 @@ const salesSlice = createSlice({
                 state.cart.push(action.payload);
             }
         },
-        // Retirer du panier
         removeFromCart: (state, action: PayloadAction<string>) => {
             state.cart = state.cart.filter(i => i.productId !== action.payload);
         },
-        // Changer quantité manuellement
         updateQuantity: (state, action: PayloadAction<{ id: string, qty: number }>) => {
             const item = state.cart.find(i => i.productId === action.payload.id);
             if (item) {
-                // Borne entre 1 et MaxStock
                 const validQty = Math.max(1, Math.min(action.payload.qty, item.maxStock));
                 item.quantity = validQty;
             }
         },
-        // Changer méthode paiement
         setPaymentMethod: (state, action: PayloadAction<SalesState['paymentMethod']>) => {
             state.paymentMethod = action.payload;
         },
-        // Vider panier
         clearCart: (state) => {
             state.cart = [];
             state.error = null;
@@ -106,16 +125,31 @@ const salesSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            // Checkout
             .addCase(processCheckout.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
             })
             .addCase(processCheckout.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.cart = []; // On vide le panier
-                state.lastSaleId = action.payload.id; // Prêt à imprimer
+                state.cart = [];
+                state.lastSaleId = action.payload.id;
             })
             .addCase(processCheckout.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
+
+            // History
+            .addCase(fetchSalesHistory.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchSalesHistory.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.history = action.payload;
+            })
+            .addCase(fetchSalesHistory.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
             });

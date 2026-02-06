@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
 
             <div>
               <h2 className="text-4xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 uppercase tracking-tighter italic leading-none drop-shadow-sm">
-                Console <span className="text-emerald-500">Maria</span>
+                Maria <span className="text-emerald-500">SAAS</span>
               </h2>
 
               <div className="flex items-center gap-2 mt-3 ml-1">

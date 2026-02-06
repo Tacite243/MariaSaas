@@ -18,7 +18,7 @@ import { ProductInput } from '@shared/schemas/inventorySchema';
 
 const Inventory: React.FC = () => {
   // Logic Hook
-  const { enrichedMeds, isLoading, dispatch } = useInventoryLogic();
+  const { enrichedMeds, isLoading, error, refresh, dismissError, dispatch } = useInventoryLogic();
 
   // State UI Local
   const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'orders' | 'ai'>('stock');
@@ -57,8 +57,8 @@ const Inventory: React.FC = () => {
     );
   }
 
-  // 2. ÉTAT VIDE (EMPTY STATE) - Si aucun produit n'existe du tout
-  if (!isLoading && enrichedMeds.length === 0 && !searchTerm) {
+  // 2. ÉTAT VIDE (EMPTY STATE) - Si aucun produit n'existe du tout ET pas d'erreur
+  if (!isLoading && enrichedMeds.length === 0 && !searchTerm && !error) {
     return (
       <div className="flex h-[80vh] items-center justify-center flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
         <div className="w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2">
@@ -83,6 +83,22 @@ const Inventory: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-10">
+
+      {/* ERROR BANNER */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-center justify-between animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="font-semibold text-sm">{error}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={refresh} className="px-3 py-1.5 bg-white dark:bg-red-900/40 text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-300 rounded-lg hover:bg-red-50 transition-colors">Réessayer</button>
+            <button onClick={dismissError} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-full transition-colors text-red-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 1. Header */}
       <InventoryHeader
@@ -127,7 +143,16 @@ const Inventory: React.FC = () => {
       {/* 3. Content Area (Tableaux) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl md:rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors animate-in slide-in-from-bottom-4 duration-500">
         <div className="overflow-x-auto custom-scrollbar">
-          {activeTab === 'stock' && <ProductTable medications={filteredMedications} onSelect={setSelectedMed} />}
+          {activeTab === 'stock' && (
+            <>
+              <ProductTable medications={filteredMedications.slice(0, 50)} onSelect={setSelectedMed} />
+              {filteredMedications.length > 50 && (
+                <div className="p-4 text-center text-slate-400 text-xs italic bg-slate-50 dark:bg-slate-800/50">
+                  Affichage limité aux 50 premiers produits pour la fluidité. Utilisez la recherche pour trouver un produit spécifique.
+                </div>
+              )}
+            </>
+          )}
           {activeTab === 'lots' && <LotTable medications={filteredMedications} />}
           {activeTab === 'orders' && <RequisitionList />}
           {activeTab === 'ai' && <div className="p-10 text-center text-slate-400">Module IA en cours de chargement...</div>}
