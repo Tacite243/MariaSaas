@@ -37,7 +37,7 @@ export const useInventoryLogic = () => {
       sellPrice: p.sellPrice,
       buyingPrice: p.buyingPrice,
       vatRate: p.vatRate,
-      lots: p.lots.map((l) => ({
+      lots: (p.lots || []).map((l) => ({
         id: l.id,
         batchNumber: l.batchNumber,
         expiryDate: l.expiryDate,
