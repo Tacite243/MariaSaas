@@ -12,7 +12,6 @@ export default function ChangeLang() {
 
   return (
     <div style={styles.container}>
-      {/* Bouton Principal */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         style={{
@@ -31,7 +30,6 @@ export default function ChangeLang() {
         </span>
       </div>
 
-      {/* LE PETIT CARRÉ (MENU) - Maintenant AGRANDI */}
       {isOpen && (
         <>
           <div style={styles.overlay} onClick={() => setIsOpen(false)} />
@@ -97,7 +95,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   langText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: '1rem', // Texte du bouton légèrement plus grand
+    fontSize: '1rem',
     letterSpacing: '0.5px'
   },
   arrow: {
@@ -113,32 +111,32 @@ const styles: { [key: string]: React.CSSProperties } = {
     bottom: 0,
     zIndex: 1000
   },
-  // --- LE CARRÉ (MENU) AGRANDI ---
+
   menu: {
     position: 'absolute',
-    top: 'calc(100% + 10px)', // Plus d'espace avec le bouton
+    top: 'calc(100% + 10px)',
     left: '0',
-    backgroundColor: '#0b1118', // Couleur de votre site
+    backgroundColor: '#0b1118',
     border: '1px solid rgba(255, 255, 255, 0.15)',
-    borderRadius: '12px', // Coins plus arrondis pour un look moderne
+    borderRadius: '12px',
     listStyle: 'none',
-    padding: '8px', // Plus de marge interne
+    padding: '8px',
     margin: 0,
-    minWidth: '200px', // Largeur augmentée (était 140px/150px)
+    minWidth: '200px',
     zIndex: 1001,
-    boxShadow: '0 15px 35px rgba(0,0,0,0.7)' // Ombre plus forte pour le relief
+    boxShadow: '0 15px 35px rgba(0,0,0,0.7)'
   },
   menuItem: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '14px 18px', // Hauteur des lignes augmentée
+    padding: '14px 18px',
     color: '#e0e0e0',
     cursor: 'pointer',
     borderRadius: '8px',
-    fontSize: '1rem', // Texte plus grand à l'intérieur
+    fontSize: '1rem',
     transition: 'all 0.2s ease',
-    marginBottom: '4px' // Espace entre les choix
+    marginBottom: '4px'
   },
   menuLabel: {
     flex: 1
