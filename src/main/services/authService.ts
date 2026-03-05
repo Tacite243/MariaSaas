@@ -5,18 +5,26 @@ import { UpdateProfileInput } from '../../shared/schemas/userSchema'
 import bcrypt from 'bcryptjs'
 import type { User } from '@prisma/client'
 
-// DTO public : jamais de hash exposé
-export type UserDTO = Omit<User, 'password'>
+// DTO public : null converti en undefined, password exclu
+export type UserDTO = Omit<User, 'password' | 'phone' | 'avatar'> & {
+  phone?: string
+  avatar?: string
+}
 
 export class AuthService {
   // ─────────────────────────────────────────
   // PRIVATE : Convertit un User Prisma en DTO sans le mot de passe
-  // Le eslint-disable est nécessaire : `password` est extrait uniquement
-  // pour être exclu du spread — c'est intentionnel.
+  // null → undefined pour phone et avatar (alignement avec le front)
   // ─────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private toDTO({ password, ...dto }: User): UserDTO {
-    return dto
+
+  private toDTO(user: User): UserDTO {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, phone, avatar, ...rest } = user
+    return {
+      ...rest,
+      phone: phone ?? undefined,
+      avatar: avatar ?? undefined
+    }
   }
 
   // ─────────────────────────────────────────

@@ -9,8 +9,8 @@ interface UserState {
   email: string
   name: string
   role: UserRole
-  phone?: string | null
-  avatar?: string | null
+  phone?: string
+  avatar?: string
 }
 
 export interface AuthState {
