@@ -6,6 +6,7 @@ out
 *.log*
 .env
 .env.*
+.vscode/settings.json
 /src/generated/prisma
 /src/renderer/dist
 /src/renderer/node_modules
