@@ -374,7 +374,13 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
                 {userInitials}
               </div>
 
-              {isModelOpen && <ProfileModal user={user} onClose={() => setIsModelOpen(false)} />}
+              {isModelOpen && (
+                <ProfileModal
+                  onLogout={onLogout}
+                  user={user}
+                  onClose={() => setIsModelOpen(false)}
+                />
+              )}
             </div>
           </div>
         </header>

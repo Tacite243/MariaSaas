@@ -15,9 +15,10 @@ export interface UserDTO {
 interface Props {
   user: UserDTO | null
   onClose: () => void
+  onLogout: () => void
 }
 
-const ProfileModal: React.FC<Props> = ({ user, onClose }) => {
+const ProfileModal: React.FC<Props> = ({ user, onClose, onLogout }) => {
   const navigate = useNavigate()
   const handleClickButtonEditUser = () => {
     navigate('/editprofile')
@@ -56,13 +57,49 @@ const ProfileModal: React.FC<Props> = ({ user, onClose }) => {
           {user.phone && <p>{user.phone}</p>}
           {user.address && <p>{user.address}</p>}
           {user.company && <p>{user.company}</p>}
+          <div>
+            {/* Button Edit profil user */}
+            <button
+              onClick={() => handleClickButtonEditUser()}
+              className="flex items-center justify-center gap-2 mx-auto my-4 px-5 py-4 bg-sky-600 text-white uppercase font-black text-[10px] tracking-widest  rounded-xl hover:bg-sky-700 transition-colors group"
+            >
+              <svg
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5 group-hover:translate-x-1 transition-transform "
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                />
+              </svg>
+              <span></span>Modifier le profil
+            </button>
 
-          <button
-            onClick={() => handleClickButtonEditUser()}
-            className="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
-          >
-            Modifier le profil
-          </button>
+            {/* Button Logout */}
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-4 px-5 py-4 text-red-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-50 bg-red-900/15 dark:hover:bg-red-900/25 transition-colors group"
+            >
+              <svg
+                className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span>Déconnexion</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
