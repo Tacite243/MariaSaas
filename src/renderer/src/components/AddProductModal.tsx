@@ -227,14 +227,11 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit }) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold rounded-xl
-           transform transition-all duration-300 ease-out
-           hover:-translate-y-1 hover:shadow-lg
-           hover:bg-slate-200 dark:hover:bg-slate-700
-           hover:text-slate-700 dark:hover:text-slate-200"
+              className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold rounded-xl transform transition-all duration-300 ease-outhover:-translate-y-1 hover:shadow-lg hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200"
             >
-              Annuler
+              Annuler{' '}
             </button>
+
             <button
               type="submit"
               className="flex-1 py-4 bg-sky-600 text-white font-bold rounded-xl shadow-lg hover:bg-sky-500"
