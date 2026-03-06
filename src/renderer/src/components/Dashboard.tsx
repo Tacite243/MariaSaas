@@ -155,8 +155,10 @@ const Dashboard: React.FC = () => {
         <div className="xl:col-span-2">
           <SalesChart data={chartData.length > 0 ? chartData : [{ name: 'Auj', sales: 0 }]} />
         </div>
-        <div className="flex flex-col gap-8">
-          <AlertsPanel count={stats.lowStockCount} />
+
+        <AlertsPanel count={stats.lowStockCount} />
+
+        <div className="xl:col-span-3">
           <AIBanner />
         </div>
       </div>
