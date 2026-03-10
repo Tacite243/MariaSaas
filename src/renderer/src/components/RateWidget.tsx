@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '@renderer/app/store/store'
 import { setExchangeRate } from '@renderer/app/store/slice/sessionSlice'
+import AnimatedCounter from './AnimatedCounter'
 
 export const RateWidget: React.FC = () => {
   const dispatch = useDispatch()
@@ -53,7 +54,7 @@ export const RateWidget: React.FC = () => {
               className="text-lg font-black text-white cursor-pointer hover:text-emerald-400 transition-colors"
               onClick={() => setIsEditing(true)}
             >
-              {exchangeRate.toLocaleString()}{' '}
+              <AnimatedCounter value={exchangeRate} />{' '}
               <span className="text-[10px] text-slate-500 font-bold">FC</span>
             </p>
           )}

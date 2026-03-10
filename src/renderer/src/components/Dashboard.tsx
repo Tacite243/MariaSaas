@@ -11,6 +11,7 @@ import { AlertsPanel } from './AlertsPanel'
 import { VolumeChart } from './VolumeChart'
 import { AIBanner } from './AIBanner'
 import { RateWidget } from './RateWidget'
+import AnimatedCounter from './AnimatedCounter'
 
 interface DashboardStats {
   revenueToday: number
@@ -66,6 +67,9 @@ const Dashboard: React.FC = () => {
     name: new Date(s.createdAt).toLocaleDateString(undefined, { weekday: 'short' }),
     sales: s.totalAmount
   }))
+  const price = formatPrice(stats.revenueToday)
+  const stockValue = stats.stockValue.toLocaleString()
+  const lowStockValue = stats.lowStockCount.toString()
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
@@ -122,21 +126,33 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Recettes du Jour"
-          value={`${formatPrice(stats.revenueToday).value.toLocaleString()} ${formatPrice(stats.revenueToday).symbol}`}
+          value={
+            <>
+              <AnimatedCounter value={price.value} /> {price.symbol}
+            </>
+          }
           change={`${stats.salesCount} Ventes`}
           color="emerald"
           icon="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3z M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2 2 6.477 2 12z"
         />
         <StatCard
           title="Valeur du Stock"
-          value={`$ ${stats.stockValue.toLocaleString()}`}
+          value={
+            <>
+              <AnimatedCounter value={stockValue} />
+            </>
+          }
           change="Asset USD"
           color="sky"
           icon="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
         />
         <StatCard
           title="Stock Critique"
-          value={stats.lowStockCount.toString()}
+          value={
+            <>
+              <AnimatedCounter value={lowStockValue} />
+            </>
+          }
           change="Ruptures"
           color="red"
           icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
