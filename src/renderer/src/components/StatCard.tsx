@@ -2,7 +2,7 @@ import React from 'react'
 
 interface Props {
   title: string
-  value: string
+  value: React.ReactNode
   change: string
   color: 'sky' | 'red' | 'amber' | 'emerald'
   icon: string
@@ -44,7 +44,7 @@ export const StatCard: React.FC<Props> = ({ title, value, change, color, icon })
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
           {title}
         </p>
-        <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter italic tabular-nums">
+        <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter  tabular-nums">
           {value}
         </h4>
       </div>
