@@ -35,6 +35,26 @@ export function setupInventoryHandlers() {
     })
   )
 
+  ipcMain.handle('inventory:update-product', async (_, { id, data }: { id: string, data: any }) => {
+    try {
+      const updated = await inventoryService.updateProduct(id, data);
+      return { success: true, data: updated };
+    } catch (err: unknown) {
+      const error = err as Error
+      return { success: false, error: { message: error.message } };
+    }
+  });
+
+  ipcMain.handle('inventory:delete-product', async (_, id: string) => {
+    try {
+      await inventoryService.deleteProduct(id);
+      return { success: true };
+    } catch (err: unknown) {
+      const error = err as Error
+      return { success: false, error: { message: error.message } };
+    }
+  });
+
   // --- FOURNISSEURS ---
   ipcMain.handle('inventory:get-suppliers', async () => {
     const data = await inventoryService.getAllSuppliers()

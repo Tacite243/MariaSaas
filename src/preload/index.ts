@@ -5,6 +5,7 @@ import { LoginInput } from '../shared/schemas/authSchema'
 import { CreateUserInput, UpdateUserInput, UpdateProfileInput } from '@shared/schemas/userSchema'
 import { CreateClientInput, UpdateClientInput } from '../shared/schemas/clientSchema'
 import { CreateSupplierInput, UpdateSupplierInput } from '@shared/schemas/supplierSchema'
+import { ProductInput } from '@shared/schemas/inventorySchema'
 
 const api = {
   auth: {
@@ -21,6 +22,8 @@ const api = {
   },
   inventory: {
     getProducts: () => ipcRenderer.invoke('inventory:get-products'),
+    updateProduct: (id: string, data: Partial<ProductInput>) => ipcRenderer.invoke('inventory:update-product', { id, data }),
+    deleteProduct: (id: string) => ipcRenderer.invoke('inventory:delete-product', id),
     createProduct: (data) => ipcRenderer.invoke('inventory:create-product', data),
     getSuppliers: () => ipcRenderer.invoke('inventory:get-suppliers'),
     createDraft: (data) => ipcRenderer.invoke('inventory:create-draft', data),

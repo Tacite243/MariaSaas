@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react'
 
-// Composants
 import { InventoryHeader } from './InventoryHeader'
 import { ProductTable } from './ProductTable'
 import { AddProductModal } from './AddProductModal'
@@ -9,14 +8,16 @@ import { ProductDetailModal } from './ProductDetailModal'
 import { RequisitionEditor } from './RequisitionEditor'
 import { RequisitionList } from './RequisitionList'
 import CategoryBadge from './CategoryBadge'
-
-// Redux & Logic
 import { useInventoryLogic } from '@renderer/hooks/useInventoryLogic'
-import { createProduct } from '@renderer/app/store/slice/inventorySlice'
+import { createProduct, updateProduct } from '@renderer/app/store/slice/inventorySlice'
 import { CATEGORIES, UIMedication } from '../features/inventory/types'
 import { ProductInput } from '@shared/schemas/inventorySchema'
 
+
+
 const Inventory: React.FC = () => {
+  const [productToEdit, setProductToEdit] = useState<UIMedication | null>(null);
+
   // Logic Hook
   const { enrichedMeds, isLoading, error, refresh, dismissError, dispatch } = useInventoryLogic()
 
@@ -48,7 +49,26 @@ const Inventory: React.FC = () => {
     setShowAddModal(false)
   }
 
-  // 1. ÉTAT DE CHARGEMENT INITIAL (Squelette ou Spinner)
+  // Handler appelé quand on clique sur le bouton "Crayon" dans le tableau
+  const handleEdit = (med: UIMedication) => {
+    setProductToEdit(med)
+    setShowAddModal(true);
+  }
+
+  // Handler appelé par onSubmit du Modal
+  const handleModalSubmit = async (data: ProductInput) => {
+    if (productToEdit) {
+      // Mode ÉDITION
+      await dispatch(updateProduct({ id: productToEdit.id, data }));
+    } else {
+      // Mode CRÉATION
+      await dispatch(createProduct(data));
+    }
+    setShowAddModal(false);
+    setProductToEdit(null);
+  };
+
+  // ÉTAT DE CHARGEMENT INITIAL (Squelette ou Spinner)
   if (isLoading && enrichedMeds.length === 0) {
     return (
       <div className="flex h-[80vh] items-center justify-center flex-col gap-4">
@@ -60,7 +80,7 @@ const Inventory: React.FC = () => {
     )
   }
 
-  // 2. ÉTAT VIDE (EMPTY STATE) - Si aucun produit n'existe du tout ET pas d'erreur
+  // ÉTAT VIDE (EMPTY STATE) - Si aucun produit n'existe du tout ET pas d'erreur
   if (!isLoading && enrichedMeds.length === 0 && !searchTerm && !error) {
     return (
       <div className="flex h-[80vh] items-center justify-center flex-col gap-6 animate-in fade-in zoom-in-95 duration-500">
@@ -219,6 +239,7 @@ const Inventory: React.FC = () => {
               <ProductTable
                 medications={filteredMedications.slice(0, 50)}
                 onSelect={setSelectedMed}
+                onEdit={handleEdit}
               />
               {filteredMedications.length > 50 && (
                 <div className="p-4 text-center text-slate-400 text-xs italic bg-slate-50 dark:bg-slate-800/50">
@@ -240,7 +261,11 @@ const Inventory: React.FC = () => {
 
       {/* 4. Modals */}
       {showAddModal && (
-        <AddProductModal onClose={() => setShowAddModal(false)} onSubmit={handleCreate} />
+        <AddProductModal
+          onClose={() => { setShowAddModal(false); setProductToEdit(null); }}
+          onSubmit={handleModalSubmit}
+          productToEdit={productToEdit}
+        />
       )}
       {showRequisitionEditor && (
         <RequisitionEditor

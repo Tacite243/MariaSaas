@@ -3,7 +3,7 @@ import { ApiResponse } from '../shared/api'
 import { LoginInput } from '../shared/schemas/authSchema'
 import { CreateUserInput, UpdateUserInput, UpdateProfileInput } from '../shared/schemas/userSchema'
 import { ProductInput, CreateRequisitionInput } from '../shared/schemas/inventorySchema'
-import { CreateSaleInput } from '@shared/schemas/salesSchema'
+import { CreateSaleInput } from '../shared/schemas/salesSchema'
 import { CreateClientInput, UpdateClientInput } from '../shared/schemas/clientSchema'
 import { CreateSupplierInput, UpdateSupplierInput } from '../shared/schemas/supplierSchema'
 import {
@@ -15,9 +15,9 @@ import {
   DashboardStatsDTO,
   SupplierDTO,
   ClientDTO,
-  CreateClientInput,
-  UpdateClientInput
-} from '@shared/types'
+} from '../shared/types'
+
+
 
 declare global {
   interface Window {
@@ -37,14 +37,10 @@ declare global {
       inventory: {
         getProducts: () => Promise<ApiResponse<ProductDTO[]>>
         createProduct: (data: ProductInput) => Promise<ApiResponse<ProductDTO>>
-        createSupplier: (
-          data: CreateSupplierInput,
-          role: string
-        ) => Promise<ApiResponse<SupplierDTO>>
-        updateSupplier: (
-          data: UpdateSupplierInput,
-          role: string
-        ) => Promise<ApiResponse<SupplierDTO>>
+        updateProduct: (id: string, data: Partial<ProductInput>) => Promise<ApiResponse<ProductDTO>>
+        deleteProduct: (id: string) => Promise<ApiResponse<void>>
+        createSupplier: (data: CreateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
+        updateSupplier: (data: UpdateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
         deleteSupplier: (id: string, role: string) => Promise<ApiResponse<void>>
         getSuppliers: () => Promise<ApiResponse<SupplierDTO[]>>
         createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<RequisitionDTO>>
@@ -64,7 +60,7 @@ declare global {
         getHistory: (filter?: {
           from: Date | string
           to: Date | string
-        }) => Promise<ApiResponse<HistoryFilter[]>>
+        }) => Promise<ApiResponse<CashMovementDTO[]>>
         createMovement: (data: {
           type: 'IN' | 'OUT'
           amount: number

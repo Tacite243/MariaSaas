@@ -192,10 +192,10 @@ export interface DashboardStatsDTO {
 export interface SupplierDTO {
   id: string
   name: string
-  contact?: string | null // 👈 Ajouté pour corriger l'erreur TS
+  contact?: string | null
   phone?: string | null
   email?: string | null
-  address?: string | null // 👈 Ajouté pour être complet
+  address?: string | null
 }
 export interface ApiResponse<T> {
   success: boolean
@@ -206,11 +206,12 @@ export interface ApiResponse<T> {
     details?: unknown
   }
 }
+
 export interface HistoryFilter {
-  f
-  rom: Date | string
+  from: Date | string
   to: Date | string
 }
+
 export interface DashboardStats {
   revenueToday: number
   salesCount: number

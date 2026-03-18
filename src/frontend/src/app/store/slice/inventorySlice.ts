@@ -1,8 +1,29 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { ProductInput, CreateRequisitionInput } from '@shared/schemas/inventorySchema'
-import { ProductDTO, SupplierDTO } from '@shared/types'
+import { ProductDTO, SupplierDTO, RequisitionDTO, ApiResponse } from '@shared/types'
 import { CreateSupplierInput, UpdateSupplierInput } from '@shared/schemas/supplierSchema'
 import { RootState } from '../store'
+
+
+
+declare global {
+  interface Window {
+    api: {
+      inventory: {
+        getProducts: () => Promise<ApiResponse<ProductDTO[]>>
+        createProduct: (data: ProductInput) => Promise<ApiResponse<ProductDTO>>
+        updateProduct: (id: string, data: Partial<ProductInput>) => Promise<ApiResponse<ProductDTO>>
+        deleteProduct: (id: string) => Promise<ApiResponse<void>>
+        createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<RequisitionDTO>>
+        validateRequisition: (id: string) => Promise<ApiResponse<RequisitionDTO>>
+        getSuppliers: () => Promise<ApiResponse<SupplierDTO[]>>
+        createSupplier: (data: CreateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
+        updateSupplier: (data: UpdateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
+        deleteSupplier: (id: string, role: string) => Promise<ApiResponse<void>>
+      }
+    }
+  }
+}
 
 export interface Requisition {
   id: string
@@ -40,7 +61,7 @@ const initialState: InventoryState = {
 
 // --- ASYNC THUNKS (Appels IPC) ---
 
-// 1. Charger les produits
+// Charger les produits
 export const fetchProducts = createAsyncThunk<ProductDTO[], void>(
   'inventory/fetchProducts',
   async (_, { rejectWithValue }) => {
@@ -55,7 +76,7 @@ export const fetchProducts = createAsyncThunk<ProductDTO[], void>(
   }
 )
 
-// 2. Créer un produit
+// Créer un produit
 export const createProduct = createAsyncThunk<ProductDTO, ProductInput>(
   'inventory/createProduct',
   async (data, { rejectWithValue }) => {
@@ -70,18 +91,35 @@ export const createProduct = createAsyncThunk<ProductDTO, ProductInput>(
   }
 )
 
-// 3. Supprimer un produit (Nouveau)
-export const deleteProduct = createAsyncThunk<string, string>(
-  'inventory/deleteProduct',
-  async (_, { rejectWithValue }) => {
+// Thunk pour Update
+export const updateProduct = createAsyncThunk<ProductDTO, { id: string, data: Partial<ProductInput> }>(
+  'inventory/updateProduct',
+  async ({ id, data }, { rejectWithValue }) => {
     try {
-      throw new Error("Suppression non implémentée backend pour l'instant")
+      const res = await window.api.inventory.updateProduct(id, data);
+      if (!res.success) throw new Error(res.error?.message || 'Erreur lors de la mise à jour');
+      return res.data as ProductDTO;
     } catch (err: unknown) {
       const error = err as Error
-      return rejectWithValue(error.message || 'Erreur lors de la suppression du produit')
+      return rejectWithValue(error.message);
     }
   }
-)
+);
+
+// Thunk pour Delete
+export const deleteProduct = createAsyncThunk<string, string>(
+  'inventory/deleteProduct',
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await window.api.inventory.deleteProduct(id);
+      if (!res.success) throw new Error(res.error?.message || 'Erreur lors de la suppression');
+      return id;
+    } catch (err: unknown) {
+      const error = err as Error
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
 // Créer un brouillon de réquisition
 export const createDraftRequisition = createAsyncThunk<Requisition, CreateRequisitionInput>(
@@ -131,7 +169,6 @@ export const addSupplier = createAsyncThunk<SupplierDTO, CreateSupplierInput>(
       if (!res.success) throw new Error(res.error?.message)
       return res.data as SupplierDTO
     } catch (err: unknown) {
-      // ✅ Correction ici: 'unknown' au lieu de 'any'
       return rejectWithValue((err as Error).message)
     }
   }
@@ -147,7 +184,6 @@ export const editSupplier = createAsyncThunk<SupplierDTO, UpdateSupplierInput>(
       if (!res.success) throw new Error(res.error?.message)
       return res.data as SupplierDTO
     } catch (err: unknown) {
-      // ✅ Correction ici
       return rejectWithValue((err as Error).message)
     }
   }
@@ -163,7 +199,6 @@ export const removeSupplier = createAsyncThunk<string, string>(
       if (!res.success) throw new Error(res.error?.message)
       return id
     } catch (err: unknown) {
-      // ✅ Correction ici
       return rejectWithValue((err as Error).message)
     }
   }
@@ -208,9 +243,15 @@ const inventorySlice = createSlice({
         state.error = action.payload as string
       })
 
+      // Update Product
+      .addCase(updateProduct.fulfilled, (state, action: PayloadAction<ProductDTO>) => {
+        const index = state.products.findIndex(p => p.id === action.payload.id);
+        if (index !== -1) state.products[index] = action.payload;
+      })
+
       // Delete Product
-      .addCase(deleteProduct.fulfilled, (state, action) => {
-        state.products = state.products.filter((p) => p.id !== action.payload)
+      .addCase(deleteProduct.fulfilled, (state, action: PayloadAction<string>) => {
+        state.products = state.products.filter(p => p.id !== action.payload);
       })
 
       // Requisitions
