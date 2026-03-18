@@ -23,31 +23,37 @@ export class InventoryService {
   // --- PRODUITS ---
 
   async createProduct(data: ProductInput) {
-    // On garantit que le code est une string
-    let finalCode: string = data.code || ''
+    const finalCode = data.code || generateInternalEAN13();
+    const existing = await prisma.product.findUnique({ where: { code: finalCode } });
+    if (existing) throw new Error(`Le code ${finalCode} est déjà utilisé`);
 
-    if (finalCode.trim() === '') {
-      finalCode = generateInternalEAN13()
-    }
+    // Séparation des données de stock initial
+    const { initialStock, ...productData } = data;
 
-    const existing = await prisma.product.findUnique({ where: { code: finalCode } })
-    if (existing) throw new Error(`Le code ${finalCode} est déjà utilisé`)
+    return await prisma.$transaction(async (tx) => {
+      // Création du produit
+      const product = await tx.product.create({
+        data: {
+          ...productData,
+          code: finalCode,
+          currentStock: initialStock?.quantity || 0, // Stock initial ou 0
+        }
+      });
 
-    // On déstructure pour isoler les champs optionnels de Zod
-    const { ...cleanData } = data
-
-    return await prisma.product.create({
-      data: {
-        ...cleanData,
-        code: finalCode, // On force le code non-undefined
-        currentStock: 0,
-        buyingPrice: cleanData.buyingPrice || 0,
-        sellPrice: cleanData.sellPrice || 0
-      },
-      include: {
-        lots: true
+      // Si initialStock est présent, créer le lot
+      if (initialStock) {
+        await tx.stockLot.create({
+          data: {
+            productId: product.id,
+            batchNumber: initialStock.batchNumber,
+            expiryDate: initialStock.expiryDate,
+            quantity: initialStock.quantity,
+          }
+        });
       }
-    })
+
+      return product;
+    });
   }
 
   async getAllProducts() {
@@ -60,6 +66,30 @@ export class InventoryService {
       },
       orderBy: { name: 'asc' }
     })
+  }
+
+  async updateProduct(id: string, data: Partial<ProductInput>) {
+    // Si on met à jour le code, on vérifie l'unicité
+    if (data.code) {
+      const existing = await prisma.product.findUnique({ where: { code: data.code } });
+      if (existing && existing.id !== id) throw new Error("Ce code produit est déjà utilisé");
+    }
+
+    return await prisma.product.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedAt: new Date()
+      }
+    });
+  }
+
+  async deleteProduct(id: string) {
+    // Vérifier s'il y a des ventes ou des lots liés
+    const hasSales = await prisma.saleItem.findFirst({ where: { productId: id } });
+    if (hasSales) throw new Error("Impossible de supprimer : ce produit a été vendu.");
+
+    return await prisma.product.delete({ where: { id } });
   }
 
   // --- FOURNISSEURS ---
