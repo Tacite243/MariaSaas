@@ -23,7 +23,8 @@ export class CashService {
                 date: {
                     gte: startDate,
                     lte: endDate
-                }
+                },
+                status: 'COMPLETED'
             },
             include: { seller: true, items: true },
             orderBy: { date: 'desc' }
@@ -42,7 +43,7 @@ export class CashService {
         });
 
         // 3. Unification (Formatage pour le Frontend)
-        const formattedSales: CashJournalEntry[] = sales.map(sale => ({
+         const formattedSales: CashJournalEntry[] = sales.map(sale => ({
             id: sale.id,
             timestamp: sale.date,
             type: CashMovementType.IN,
@@ -50,7 +51,7 @@ export class CashService {
             amount: sale.totalAmount,
             reference: sale.reference,
             description: `Vente effectuée (${sale.items.length} art.)`,
-            performedBy: sale.seller.name,
+            performedBy: sale.seller?.name || 'Vendeur',
             isManual: false
         }));
 

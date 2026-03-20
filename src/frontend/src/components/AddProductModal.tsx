@@ -52,7 +52,7 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
         }
     }, [productToEdit]);
 
-    // Calcul de la marge en temps réel
+    // Calcul de la marge en temps réel (en USD)
     const marginStats = useMemo(() => {
         const buy = Number(newMed.buyingPrice) || 0;
         const sell = Number(newMed.sellPrice) || 0;
@@ -76,7 +76,6 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
         <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex justify-center p-4 sm:p-6 md:p-10 overflow-y-auto custom-scrollbar">
             <div className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800 h-fit my-auto">
 
-                {/* HEADER FIXE VISUELLEMENT */}
                 <div className="p-6 md:p-8 border-b border-slate-100 dark:border-slate-800">
                     <h3 className="text-2xl font-black text-slate-900 dark:text-white">
                         {isEditMode ? 'Modifier le produit' : 'Référencer un produit'}
@@ -86,7 +85,6 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                     </p>
                 </div>
 
-                {/* FORMULAIRE SCROLLABLE AVEC LE RESTE */}
                 <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-8">
 
                     {/* Identification */}
@@ -155,7 +153,7 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                             </div>
                         </div>
 
-                        {/* Ordonnance (Prescription) */}
+                        {/* Ordonnance */}
                         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30 mt-4 transition-all hover:bg-red-100/50">
                             <input type="checkbox" id="prescription" checked={newMed.isPrescriptionRequired} onChange={e => setNewMed({ ...newMed, isPrescriptionRequired: e.target.checked })} className="w-5 h-5 accent-red-600 cursor-pointer rounded" />
                             <label htmlFor="prescription" className="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer select-none flex-1">
@@ -164,29 +162,31 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                         </div>
                     </div>
 
-                    {/* Finances */}
+                    {/* Finances (MODIFIÉ POUR FORCER USD) */}
                     <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
                         <div className="flex justify-between items-center mb-2">
-                            <h4 className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Finances & Tarification</h4>
+                            <h4 className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Finances & Tarification (Base USD)</h4>
                             {newMed.sellPrice > 0 && (
                                 <span className={`text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest ${marginStats.isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                                    Marge: {marginStats.profit.toLocaleString()} Fc ({marginStats.marginPercent}%)
+                                    Marge: ${marginStats.profit.toLocaleString('en-US', { minimumFractionDigits: 2 })} ({marginStats.marginPercent}%)
                                 </span>
                             )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500 ml-1">Prix d'Achat (HT)</label>
-                                <input type="number" min="0" className={inputClass} value={newMed.buyingPrice === 0 ? '' : newMed.buyingPrice} onChange={e => setNewMed({ ...newMed, buyingPrice: Number(e.target.value) })} />
+                                <label className="text-[10px] font-bold text-slate-500 ml-1">Prix d'Achat (USD)</label>
+                                {/* IMPORTANT: step="0.01" permet de taper des centimes (ex: 1.50) */}
+                                <input type="number" min="0" step="0.01" className={inputClass} value={newMed.buyingPrice === 0 ? '' : newMed.buyingPrice} onChange={e => setNewMed({ ...newMed, buyingPrice: Number(e.target.value) })} />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-slate-500 ml-1">Taxe TVA (%)</label>
-                                <input type="number" min="0" max="100" className={inputClass} value={newMed.vatRate === 0 ? '' : newMed.vatRate} onChange={e => setNewMed({ ...newMed, vatRate: Number(e.target.value) })} />
+                                <input type="number" min="0" max="100" step="1" className={inputClass} value={newMed.vatRate === 0 ? '' : newMed.vatRate} onChange={e => setNewMed({ ...newMed, vatRate: Number(e.target.value) })} />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-emerald-600 ml-1 uppercase tracking-widest">Prix de Vente (TTC) *</label>
-                                <input type="number" min="0" className={`${inputClass} !border-emerald-200 dark:!border-emerald-800 focus:!ring-emerald-500 font-bold text-emerald-700 dark:text-emerald-400`} value={newMed.sellPrice === 0 ? '' : newMed.sellPrice} onChange={e => setNewMed({ ...newMed, sellPrice: Number(e.target.value) })} required />
+                                <label className="text-[10px] font-black text-emerald-600 ml-1 uppercase tracking-widest">Prix de Vente (USD) *</label>
+                                {/* IMPORTANT: step="0.01" permet de taper des centimes (ex: 2.25) */}
+                                <input type="number" min="0" step="0.01" className={`${inputClass} !border-emerald-200 dark:!border-emerald-800 focus:!ring-emerald-500 font-bold text-emerald-700 dark:text-emerald-400`} value={newMed.sellPrice === 0 ? '' : newMed.sellPrice} onChange={e => setNewMed({ ...newMed, sellPrice: Number(e.target.value) })} required />
                             </div>
                         </div>
                     </div>
@@ -196,11 +196,11 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                         <h4 className="text-[10px] font-black text-sky-600 uppercase tracking-widest">Logistique & Stockage</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500 ml-1">Stock Minimum (Alerte)</label>
+                                <label className="text-[10px] font-bold text-slate-500 ml-1">Stock Min (Alerte)</label>
                                 <input type="number" min="0" className={inputClass} value={newMed.minStock} onChange={e => setNewMed({ ...newMed, minStock: Number(e.target.value) })} />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-500 ml-1">Stock Maximum</label>
+                                <label className="text-[10px] font-bold text-slate-500 ml-1">Stock Max</label>
                                 <input type="number" min="0" className={inputClass} value={newMed.maxStock || ''} onChange={e => setNewMed({ ...newMed, maxStock: Number(e.target.value) })} />
                             </div>
                             <div className="space-y-1">
@@ -210,7 +210,7 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                         </div>
                     </div>
 
-                    {/* Stock Initial Facultatif - MASQUÉ EN MODE ÉDITION */}
+                    {/* Stock Initial */}
                     {!isEditMode && (
                         <div className="p-6 bg-sky-50 dark:bg-sky-900/10 rounded-2xl border border-sky-100 dark:border-sky-900/30">
                             <label className="flex items-center gap-3 cursor-pointer">
@@ -218,11 +218,10 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                                 <span className="text-sm font-black text-sky-800 dark:text-sky-300 uppercase tracking-widest select-none">Ajouter un lot de stock initial</span>
                             </label>
 
-                            {/* 3. LABELS AJOUTÉS POUR LE STOCK INITIAL */}
                             {showInitialStock && (
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-widest ml-1">Quantité (Unités)</label>
+                                        <label className="text-[10px] font-bold text-sky-700 dark:text-sky-400 uppercase tracking-widest ml-1">Qté (Unités)</label>
                                         <input type="number" min="1" placeholder="ex: 50" className={`${inputClass} !bg-white dark:!bg-slate-900`} onChange={e => setInitialStock({ ...initialStock, quantity: Number(e.target.value) })} />
                                     </div>
                                     <div className="space-y-1">
