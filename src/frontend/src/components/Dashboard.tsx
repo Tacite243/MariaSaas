@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { useCurrency } from '@renderer/hooks/useCurrently'
 import { AppDispatch } from '@renderer/app/store/store'
 import { fetchDailyRate } from '@renderer/app/store/slice/sessionSlice'
-
-// Composants
 import { StatCard } from './StatCard'
 import { SalesChart } from './SalesCharts'
 import { AlertsPanel } from './AlertsPanel'
@@ -12,6 +9,8 @@ import { VolumeChart } from './VolumeChart'
 import { AIBanner } from './AIBanner'
 import { RateWidget } from './RateWidget'
 import AnimatedCounter from './AnimatedCounter'
+
+
 
 interface DashboardStats {
   revenueToday: number
@@ -21,8 +20,23 @@ interface DashboardStats {
   recentSales: { createdAt: string | Date; totalAmount: number }[]
 }
 
+// --- CORRECTION TYPESCRIPT ---
+// On déclare "stats" pour que TypeScript sache qu'il existe dans window.api
+declare global {
+  interface Window {
+    api: {
+      stats: {
+        getDashboard: () => Promise<{
+          success: boolean
+          data?: DashboardStats
+          error?: { message: string }
+        }>
+      }
+    }
+  }
+}
+
 const Dashboard: React.FC = () => {
-  const { formatPrice } = useCurrency()
   const [data, setData] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const dispatch = useDispatch<AppDispatch>()
@@ -67,8 +81,10 @@ const Dashboard: React.FC = () => {
     name: new Date(s.createdAt).toLocaleDateString(undefined, { weekday: 'short' }),
     sales: s.totalAmount
   }))
-  const price = formatPrice(stats.revenueToday)
-  const stockValue = stats.stockValue.toLocaleString()
+
+  // Formatage forcé en USD
+  const revenueStr = stats.revenueToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const stockValueStr = stats.stockValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const lowStockValue = stats.lowStockCount.toString()
 
   return (
@@ -128,7 +144,7 @@ const Dashboard: React.FC = () => {
           title="Recettes du Jour"
           value={
             <>
-              <AnimatedCounter value={price.value} /> {price.symbol}
+              $<AnimatedCounter value={revenueStr} />
             </>
           }
           change={`${stats.salesCount} Ventes`}
@@ -139,7 +155,7 @@ const Dashboard: React.FC = () => {
           title="Valeur du Stock"
           value={
             <>
-              <AnimatedCounter value={stockValue} />
+              $<AnimatedCounter value={stockValueStr} />
             </>
           }
           change="Asset USD"

@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { ProductInput, CreateRequisitionInput } from '@shared/schemas/inventorySchema'
-import { ProductDTO, SupplierDTO, RequisitionDTO, ApiResponse } from '@shared/types'
+import { ApiResponse, ProductDTO, RequisitionDTO, SupplierDTO } from '@shared/types'
 import { CreateSupplierInput, UpdateSupplierInput } from '@shared/schemas/supplierSchema'
 import { RootState } from '../store'
-
 
 
 declare global {
@@ -25,6 +24,7 @@ declare global {
   }
 }
 
+// Les types locaux utiles au composant
 export interface Requisition {
   id: string
   reference: string
@@ -59,7 +59,9 @@ const initialState: InventoryState = {
   error: null
 }
 
-// --- ASYNC THUNKS (Appels IPC) ---
+// ============================================================================
+// ASYNC THUNKS (Ponts entre le Frontend et le Backend IPC)
+// ============================================================================
 
 // Charger les produits
 export const fetchProducts = createAsyncThunk<ProductDTO[], void>(
@@ -91,7 +93,7 @@ export const createProduct = createAsyncThunk<ProductDTO, ProductInput>(
   }
 )
 
-// Thunk pour Update
+// Mettre à jour un produit
 export const updateProduct = createAsyncThunk<ProductDTO, { id: string, data: Partial<ProductInput> }>(
   'inventory/updateProduct',
   async ({ id, data }, { rejectWithValue }) => {
@@ -106,7 +108,7 @@ export const updateProduct = createAsyncThunk<ProductDTO, { id: string, data: Pa
   }
 );
 
-// Thunk pour Delete
+// Supprimer un produit
 export const deleteProduct = createAsyncThunk<string, string>(
   'inventory/deleteProduct',
   async (id, { rejectWithValue }) => {
@@ -121,7 +123,7 @@ export const deleteProduct = createAsyncThunk<string, string>(
   }
 );
 
-// Créer un brouillon de réquisition
+// Créer un brouillon de réquisition (Entrée en stock)
 export const createDraftRequisition = createAsyncThunk<Requisition, CreateRequisitionInput>(
   'inventory/createDraft',
   async (data, { rejectWithValue }) => {
@@ -131,13 +133,12 @@ export const createDraftRequisition = createAsyncThunk<Requisition, CreateRequis
       return response.data as unknown as Requisition
     } catch (err: unknown) {
       const error = err as Error
-      return rejectWithValue(
-        error.message || 'Erreur lors de la création du brouillon de réquisition'
-      )
+      return rejectWithValue(error.message || 'Erreur lors de la création du brouillon de réquisition')
     }
   }
 )
 
+// Valider une réquisition
 export const validateRequisition = createAsyncThunk<Requisition, string>(
   'inventory/validate',
   async (id, { rejectWithValue }) => {
@@ -204,7 +205,9 @@ export const removeSupplier = createAsyncThunk<string, string>(
   }
 )
 
-// --- SLICE ---
+// ============================================================================
+// SLICE (Gestion de l'état local Redux)
+// ============================================================================
 const inventorySlice = createSlice({
   name: 'inventory',
   initialState,
@@ -215,7 +218,7 @@ const inventorySlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Products
+      // --- Fetch Products ---
       .addCase(fetchProducts.pending, (state) => {
         state.isLoading = true
         state.error = null
@@ -229,45 +232,46 @@ const inventorySlice = createSlice({
         state.error = action.payload as string
       })
 
-      // Create Product
+      // --- Create Product ---
       .addCase(createProduct.pending, (state) => {
         state.isLoading = true
         state.error = null
       })
       .addCase(createProduct.fulfilled, (state, action: PayloadAction<ProductDTO>) => {
         state.isLoading = false
-        state.products.push(action.payload)
+        state.products.unshift(action.payload) // unshift pour le mettre en haut de liste
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.isLoading = false
         state.error = action.payload as string
       })
 
-      // Update Product
+      // --- Update Product ---
       .addCase(updateProduct.fulfilled, (state, action: PayloadAction<ProductDTO>) => {
         const index = state.products.findIndex(p => p.id === action.payload.id);
-        if (index !== -1) state.products[index] = action.payload;
+        if (index !== -1) {
+          // Remplace l'ancien objet par le nouveau reçu du backend
+          state.products[index] = action.payload;
+        }
       })
 
-      // Delete Product
+      // --- Delete Product ---
       .addCase(deleteProduct.fulfilled, (state, action: PayloadAction<string>) => {
         state.products = state.products.filter(p => p.id !== action.payload);
       })
 
-      // Requisitions
+      // --- Requisitions ---
       .addCase(createDraftRequisition.pending, (state) => {
         state.error = null
       })
       .addCase(createDraftRequisition.rejected, (state, action) => {
         state.error = action.payload as string
       })
-      .addCase(validateRequisition.fulfilled, () => {
-        // Logique post-validation (optionnel)
-      })
       .addCase(validateRequisition.rejected, (state, action) => {
         state.error = action.payload as string
       })
-      // SUPPLIERS
+
+      // --- Fournisseurs ---
       .addCase(fetchSuppliers.fulfilled, (state, action) => {
         state.suppliers = action.payload
       })

@@ -23,8 +23,8 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect, onEdit })
           <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Catégorie</th>
           <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Dosage</th>
           <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Stock</th>
-          <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Achat</th>
-          <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Vente</th>
+          <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Achat (USD)</th>
+          <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">P. Vente (USD)</th>
           <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Marge</th>
           <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
         </tr>
@@ -62,52 +62,38 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect, onEdit })
                 </div>
               </td>
 
-              {/* Catégorie (Ajouté pour aligner les colonnes) */}
               <td className="px-6 py-4 text-center font-bold text-slate-500 dark:text-slate-400 text-xs">
                 {med.category || '-'}
               </td>
 
-              {/* Dosage */}
               <td className="px-6 py-4 text-center font-bold text-slate-500 dark:text-slate-400 text-xs">
                 {med.dosage || '-'}
               </td>
 
-              {/* Stock */}
               <td className="px-6 py-4 text-center">
-                <div
-                  className={`inline-flex flex-col items-center px-3 py-1 rounded-lg ${isLow ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
-                >
+                <div className={`inline-flex flex-col items-center px-3 py-1 rounded-lg ${isLow ? 'bg-red-50 dark:bg-red-900/20 text-red-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
                   <span className="font-black text-sm leading-none">{med.currentStock}</span>
                 </div>
               </td>
 
-              {/* P. Achat */}
+              {/* MODIFIÉ : P. Achat formaté en USD avec centimes */}
               <td className="px-6 py-4 text-right font-medium text-slate-400 text-xs">
-                {med.buyingPrice.toLocaleString()} <span className="text-[9px] font-normal">Fc</span>
+                ${med.buyingPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
 
-              {/* P. Vente */}
+              {/* MODIFIÉ : P. Vente formaté en USD avec centimes */}
               <td className="px-6 py-4 text-right font-black text-slate-700 dark:text-white text-sm">
-                {med.sellPrice.toLocaleString()} <span className="text-[9px] text-slate-400 font-normal">Fc</span>
+                ${med.sellPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
 
-              {/* Marge */}
               <td className="px-6 py-4 text-right">
-                <span
-                  className={`text-xs font-black ${margin >= 0 ? 'text-emerald-600' : 'text-red-500'}`}
-                >
-                  {margin > 0 ? '+' : ''}
-                  {marginPercent}%
+                <span className={`text-xs font-black ${margin >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {margin > 0 ? '+' : ''}{marginPercent}%
                 </span>
               </td>
 
-              {/* Action */}
               <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                <button
-                  onClick={() => onEdit(med)}
-                  className="p-2 text-slate-400 hover:text-sky-600 transition-colors"
-                  title="Modifier"
-                >
+                <button onClick={() => onEdit(med)} className="p-2 text-slate-400 hover:text-sky-600 transition-colors" title="Modifier">
                   ✏️
                 </button>
                 <button
