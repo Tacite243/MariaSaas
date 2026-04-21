@@ -1,29 +1,30 @@
 # 🏥 MariaSaaS - Open Source Pharmacy Management System
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![Build Status](https://github.com/VOTRE_NOM/MariaSaaS/actions/workflows/release.yml/badge.svg)](https://github.com/VOTRE_NOM/MariaSaaS/actions)
 
 **MariaSaaS** est une solution de gestion de pharmacie de pointe, conçue pour être **moderne**, **sécurisée** et **Offline-First**. 
 
-L'objectif de ce projet est de démocratiser l'accès à des outils de gestion pharmaceutique professionnels pour les officines indépendantes, particulièrement dans les zones à connectivité limitée, tout en respectant les standards internationaux (GxP).
+L'objectif de ce projet est de démocratiser l'accès à des outils de gestion pharmaceutique professionnels (ERP/POS) pour les officines indépendantes, particulièrement dans les zones à connectivité limitée (ex: RDC, Afrique francophone), tout en respectant les standards internationaux (GxP, FEFO).
 
 ## ✨ Vision & Impact
 Dans de nombreuses régions, les pharmacies luttent avec des systèmes obsolètes ou coûteux. MariaSaaS offre :
-- 🔒 **Souveraineté des données** : Stockage local via SQLite/Prisma.
+- 🔒 **Souveraineté des données** : Stockage 100% local via SQLite et Prisma.
 - ⚡ **Performance native** : Application desktop via Electron + Vite.
-- 💰 **Flexibilité financière** : Gestion multi-devises (USD/CDF) avec taux de change dynamique.
-- 🤖 **Intelligence** : Monitoring des stocks critiques et aide à la décision.
+- 💰 **Double Devise Native** : Gestion fluide USD/Monnaie locale (ex: CDF) avec taux de change dynamique et calcul des marges intégré.
+- 📦 **Traçabilité Totale** : Algorithme FEFO (First Expired, First Out) automatisé lors des ventes.
 
 ---
 
 ## 🏗 Architecture Technique
 
-Le projet utilise une architecture **Vertical Slice** stricte pour une scalabilité maximale.
+Le projet utilise une architecture **Vertical Slice** stricte (zéro `any` toléré) pour une scalabilité maximale.
 
 | Couche | Technologie | Rôle |
 | :--- | :--- | :--- |
-| **Frontend** | React 18 + TailwindCSS | Interface utilisateur réactive et typée. |
-| **State** | Redux Toolkit | Source unique de vérité (Auth, Stock, Session). |
+| **Frontend** | React 18 + TailwindCSS + Shadcn | Interface utilisateur réactive et typée. |
+| **State** | Redux Toolkit | Source unique de vérité (Auth, Stock, Session, POS). |
 | **Backend** | Node.js (Main Process) | Logique métier, sécurité et accès disque. |
 | **Persistance**| Prisma + SQLite | ORM moderne pour une base de données locale robuste. |
 | **Validation** | Zod | Schémas de données partagés (zéro duplication). |
@@ -33,14 +34,14 @@ Le projet utilise une architecture **Vertical Slice** stricte pour une scalabili
 ## 🚀 Démarrage Rapide
 
 ### Pré-requis
-- **Node.js :** v20+ ou v22+ (LTS recommandé).
-- **OS :** Windows, macOS ou Linux.
+- **Node.js :** v20+ ou v22+ (LTS recommandé). Utilisez `nvm`.
+- **OS :** Windows, macOS ou Linux (Ubuntu 22/24).
 
 ### Installation
 
 1.  **Cloner le projet :**
     ```bash
-    git clone https://github.com/votre-username/MariaSaaS.git
+    git clone https://github.com/VOTRE_NOM/MariaSaaS.git
     cd MariaSaaS
     npm install
     ```
@@ -49,37 +50,24 @@ Le projet utilise une architecture **Vertical Slice** stricte pour une scalabili
     ```bash
     # Créez un fichier .env à la racine : DATABASE_URL="file:./dev.db"
     npx prisma db push
+    npx prisma generate
     ```
 
 3.  **Lancer en mode développement :**
     ```bash
     npm run dev
     ```
+    *Note Linux : Si la fenêtre ne s'ouvre pas sur Ubuntu/Wayland, la commande `npm run dev` force automatiquement le mode X11 et désactive la sandbox pour le développement.*
 
 ---
 
-## 🤝 Contribuer
+## 🧪 Tests & Qualité
 
-Nous adorons les contributions ! Que ce soit pour corriger un bug, ajouter une fonctionnalité ou améliorer la documentation.
+Le projet est protégé par **Husky** et **Lint-staged**. Aucun commit contenant des erreurs de type ou des `console.log` non autorisés ne sera accepté.
 
-### Workflow de développement
-1. Consultez les **Issues** pour trouver une tâche.
-2. Suivez le **Guide du Développeur** dans le wiki pour comprendre le pattern IPC/Redux.
-3. Créez une branche (`feature/incroyable-option`).
-4. Soumettez une Pull Request (PR).
+```bash
+# Lancer les tests unitaires (Vitest)
+npm run test
 
----
-
-## 🛠 Roadmap & Prochaines étapes
-- [ ] Module Point de Vente (POS) complet.
-- [ ] Impression de tickets de caisse (Thermique/ESC-POS).
-- [ ] Exportation des rapports en PDF et Excel.
-- [ ] Synchronisation optionnelle avec un Cloud (MCP Architecture).
-
----
-
-## 📄 Licence
-Ce projet est sous licence **MIT**. Vous êtes libre de l'utiliser, de le modifier et de le distribuer.
-
----
-*Développé pour l'accès aux soins de santé.*
+# Vérifier le typage strict avant de commit
+npm run typecheck
