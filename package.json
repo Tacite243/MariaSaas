@@ -11,8 +11,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "start": "electron-vite preview --electron-args='--no-sandbox'",
-    "dev": "cross-env XDG_SESSION_TYPE=x11 electron-vite dev --electron-args='--no-sandbox'",
+    "dev": "cross-env XDG_SESSION_TYPE=x11 electron-vite dev -- --no-sandbox",
+    "start": "cross-env XDG_SESSION_TYPE=x11 electron-vite preview -- --no-sandbox",
     "build": "npm run db:generate && tsc && electron-vite build",
     "migration": "npx prisma migrate dev --name init",
     "build:unpack": "npm run build && electron-builder --dir",
@@ -24,7 +24,8 @@
     "build:linux": "electron-vite build && electron-builder --linux",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "preview": "electron-vite preview -- --no-sandbox"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
