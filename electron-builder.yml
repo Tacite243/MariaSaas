@@ -43,3 +43,4 @@ linux:
     - deb
     - AppImage
   category: Utility
+  icon: ressources/icon.png

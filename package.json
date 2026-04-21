@@ -1,10 +1,14 @@
 {
   "name": "mariasaas",
+  "email": "MariaSaaS - Pharmacy Management System",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": {
+    "name": "MariaSaas Team",
+    "email": "taciteiragi@gmail.com"
+  },
+ "homepage": "https://github.com/Tacite243/MariaSaaS",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
