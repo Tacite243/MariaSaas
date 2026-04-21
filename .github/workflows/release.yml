@@ -1,0 +1,44 @@
+name: Build and Release
+on:
+  push:
+    branches:
+      - develop
+      - master
+    tags:
+      - 'v*' # Se déclenche quand vous créez un tag version (ex: v1.0.0)
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # On build sur Windows pour le .exe et sur Ubuntu pour le .deb/.AppImage
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Vite/React
+        run: npm run build
+
+      - name: Build/Release Electron App
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # On publie uniquement si c'est un push de tag (ex: v1.0.0)
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          # Arguments pour passer outre les erreurs de sandbox sur Linux pendant le build
+          args: --config.linux.target=deb --config.win.target=nsis

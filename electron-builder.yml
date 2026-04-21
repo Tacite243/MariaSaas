@@ -1,43 +1,45 @@
-appId: com.electron.app
-productName: mariasaas
+appId: com.mariasaas.app
+productName: MariaSaaS
 directories:
+  output: dist
   buildResources: build
+
+# Fichiers à inclure dans l'application finale
 files:
-  - '!**/.vscode/*'
-  - '!src/*'
-  - '!electron.vite.config.{js,ts,mjs,cjs}'
-  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
-  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
-asarUnpack:
-  - resources/**
+  - out/**/*
+  - resources/**/*
+  - node_modules/@prisma/client/**/*
+  - prisma/dev.db
+  - package.json
+
+# 🟢 CRITIQUE : Force l'inclusion des binaires Prisma pour l'OS cible
+extraResources:
+  - from: node_modules/.prisma/client
+    to: prisma-engine
+    filter:
+      - "*.node"
+      - "*.exe"
+
+# 🟢 Désactivation de la signature obligatoire
+forceCodeSigning: false
+
+# Configuration Windows
 win:
-  executableName: mariasaas
+  target:
+    - nsis
+  executableName: MariaSaaS
+  icon: resources/icon.ico # Assure-toi d'avoir ce fichier .ico !
+  # On dit explicitement à Windows de ne pas signer
+  verifyUpdateCodeSignature: false
+
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
+  artifactName: ${productName}-Setup-${version}.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
-mac:
-  entitlementsInherit: build/entitlements.mac.plist
-  extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
-  notarize: false
-dmg:
-  artifactName: ${name}-${version}.${ext}
+
 linux:
   target:
-    - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
+    - AppImage
   category: Utility
-appImage:
-  artifactName: ${name}-${version}.${ext}
-npmRebuild: false
-publish:
-  provider: generic
-  url: https://example.com/auto-updates
