@@ -44,3 +44,11 @@ linux:
     - AppImage
   category: Utility
   icon: ressources/icon.png
+mac:
+  target: dmg
+  category: public.app-category.healthcare
+  icon: resources/icon.icns
+publish:
+  provider: github
+  owner: TON_NOM_UTILISATEUR_GITHUB  # À REMPLACER PAR TON VRAI USERNAME !
+  repo: MariaSaas

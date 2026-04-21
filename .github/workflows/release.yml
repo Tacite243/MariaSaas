@@ -1,25 +1,23 @@
-name: Build and Release
+name: Release MariaSaaS
+
 on:
   push:
-    branches:
-      - develop
-      - master
     tags:
-      - 'v*' # Se déclenche quand vous créez un tag version (ex: v1.0.0)
+      - 'v*' # Se déclenche si tu pousses un tag comme "v1.0.0"
 
 jobs:
   build:
+    # 🌟 LA MAGIE EST ICI : On lance 3 serveurs différents simultanément !
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # On build sur Windows pour le .exe et sur Ubuntu pour le .deb/.AppImage
-        os: [windows-latest, ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Checkout Code
+      - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -31,14 +29,16 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Build Vite/React
+      - name: Build Vite App
         run: npm run build
 
-      - name: Build/Release Electron App
+      - name: Compile & Release Electron App
         uses: samuelmeuli/action-electron-builder@v1
         with:
+          # Le token est fourni automatiquement par GitHub pour publier la release
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # On publie uniquement si c'est un push de tag (ex: v1.0.0)
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          # Arguments pour passer outre les erreurs de sandbox sur Linux pendant le build
-          args: --config.linux.target=deb --config.win.target=nsis
+          release: true
+          
+          # Force le build approprié selon l'OS du serveur
+          mac_certs: ${{ secrets.MAC_CERTS }} # Si tu as un compte Apple Dev plus tard
+          mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}

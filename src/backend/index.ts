@@ -10,6 +10,10 @@ import { setupSalesHandlers } from './ipc/sales'
 import { setupStatsHandlers } from './ipc/stats'
 import { setupFinanceHandlers } from './ipc/finance'
 import { setupClientHandlers } from './ipc/clients'
+import { autoUpdater } from 'electron-updater'
+
+
+
 
 // --- CONFIGURATION LINUX "BUNKER" ---
 if (process.platform === 'linux') {
@@ -76,7 +80,17 @@ function createWindow(): void {
 
 app.whenReady().then(async () => {
   // console.log('🚀 App Ready...')
-  electronApp.setAppUserModelId('com.mariasaas')
+  electronApp.setAppUserModelId('com.mariasaas');
+
+  if (!is.dev) {
+    autoUpdater.checkForUpdatesAndNotify()
+    
+    // Optionnel : Logs pour voir ce que fait l'updater
+    autoUpdater.on('update-available', () => console.log('Mise à jour dispo !'))
+    autoUpdater.on('update-downloaded', () => {
+      console.log('Mise à jour téléchargée. Installation au prochain redémarrage.')
+    })
+  }
 
   // Init DB
   try {

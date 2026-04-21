@@ -8,7 +8,7 @@
     "name": "MariaSaas Team",
     "email": "taciteiragi@gmail.com"
   },
- "homepage": "https://github.com/Tacite243/MariaSaaS",
+  "homepage": "https://github.com/Tacite243/MariaSaaS",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -48,6 +48,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "electron-updater": "^6.8.3",
     "html5-qrcode": "^2.3.8",
     "qrcode": "^1.5.4",
     "react-hook-form": "^7.71.1",
