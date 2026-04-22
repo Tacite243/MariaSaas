@@ -4,51 +4,56 @@ directories:
   output: dist
   buildResources: build
 
-# Fichiers à inclure dans l'application finale
+# 🟢 Configuration des fichiers inclus
 files:
   - out/**/*
   - resources/**/*
   - node_modules/@prisma/client/**/*
+  - node_modules/.prisma/client/**/*
   - prisma/dev.db
   - package.json
 
-# 🟢 CRITIQUE : Force l'inclusion des binaires Prisma pour l'OS cible
-extraResources:
-  - from: node_modules/.prisma/client
-    to: prisma-engine
-    filter:
-      - "*.node"
-      - "*.exe"
+# 🟢 Sortie de l'archive ASAR pour les binaires Prisma (Indispensable pour Windows)
+asarUnpack:
+  - node_modules/.prisma/client/*.node
+  - node_modules/.prisma/client/query-engine-windows.exe
+  - resources/**
 
-# 🟢 Désactivation de la signature obligatoire
+# 🟢 Paramètres globaux
 forceCodeSigning: false
 
-# Configuration Windows
+# 🔵 Configuration WINDOWS
 win:
+  executableName: mariasaas
+  icon: resources/icon.ico
   target:
     - nsis
-  executableName: MariaSaaS
-  icon: resources/icon.ico # Assure-toi d'avoir ce fichier .ico !
-  # On dit explicitement à Windows de ne pas signer
   verifyUpdateCodeSignature: false
 
 nsis:
   artifactName: ${productName}-Setup-${version}.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
 
+# 🟠 Configuration LINUX
 linux:
   target:
     - deb
     - AppImage
+  maintainer: taciteiragi@gmail.com
   category: Utility
-  icon: ressources/icon.png
+  icon: resources/icon.png
+
+# 🟣 Configuration MacOS
 mac:
   target: dmg
-  category: public.app-category.healthcare
   icon: resources/icon.icns
+  notarize: false
+
 publish:
   provider: github
-  owner: TON_NOM_UTILISATEUR_GITHUB  # À REMPLACER PAR TON VRAI USERNAME !
+  owner: Tacite243
   repo: MariaSaas
