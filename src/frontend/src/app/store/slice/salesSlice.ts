@@ -50,6 +50,8 @@ export const processCheckout = createAsyncThunk(
     const state = getState() as RootState
     const { cart, paymentMethod, discount, currentCustomer } = state.sales
     const { user } = state.auth
+    const { currency, exchangeRate } = state.session
+    const { activeSession } = state.cashSession
 
     if (!user) return rejectWithValue('Vendeur non identifié')
     if (cart.length === 0) return rejectWithValue('Panier vide')
@@ -59,6 +61,9 @@ export const processCheckout = createAsyncThunk(
       clientId: currentCustomer || undefined,
       paymentMethod,
       discountAmount: discount,
+      currency,
+      exchangeRate,
+      cashSessionId: activeSession?.id,
       items: cart.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,

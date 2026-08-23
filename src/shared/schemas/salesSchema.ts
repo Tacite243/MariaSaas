@@ -12,7 +12,10 @@ export const createSaleSchema = z.object({
     clientId: z.string().uuid().optional(),
     paymentMethod: z.enum(['CASH', 'MOBILE_MONEY', 'CARD', 'INSURANCE']),
     items: z.array(cartItemSchema).min(1, "Le panier est vide"),
-    discountAmount: z.number().min(0).default(0)
+    discountAmount: z.number().min(0).default(0),
+    currency: z.enum(['USD', 'CDF']).default('CDF'),
+    exchangeRate: z.number().positive(),
+    cashSessionId: z.string().uuid().optional()
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;

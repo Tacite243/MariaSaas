@@ -1,5 +1,6 @@
 import React from 'react'
 import { UIMedication } from '../features/inventory/types'
+import { ProductQr } from '@renderer/components/shared/ProductQr'
 
 interface Props {
   medication: UIMedication
@@ -15,11 +16,7 @@ export const ProductDetailModal: React.FC<Props> = ({ medication, onClose }) => 
     <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[3rem] p-8 md:p-12 shadow-2xl animate-in zoom-in-95 border border-slate-200 dark:border-slate-800">
         <div className="flex flex-col items-center text-center">
-          {medication.qrCode && (
-            <div className="w-40 h-40 md:w-48 md:h-48 bg-white p-2 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 shadow-2xl mb-8">
-              <img src={medication.qrCode} alt="QR" className="w-full h-full object-contain" />
-            </div>
-          )}
+          <ProductQr code={medication.code} size={160} className="w-40 h-40 md:w-48 md:h-48 mb-8" />
 
           <h3 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white italic tracking-tighter uppercase mb-4 leading-tight">
             {medication.name}

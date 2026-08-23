@@ -6,6 +6,8 @@ import salesReducer from './slice/salesSlice'
 import sessionReducer from './slice/sessionSlice'
 import clientReducer from './slice/clientSlice'
 import FinanceRerducer from './slice/financeSlice'
+import posReducer from './slice/posSlice'
+import cashSessionReducer from './slice/cashSessionSlice'
 
 // --- MIDDLEWARE DE PERSISTANCE ---
 const persistenceMiddleware: Middleware = (store) => (next) => (action) => {
@@ -39,7 +41,9 @@ export const store = configureStore({
     sales: salesReducer,
     session: sessionReducer,
     clients: clientReducer,
-    finance: FinanceRerducer
+    finance: FinanceRerducer,
+    pos: posReducer,
+    cashSession: cashSessionReducer
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(persistenceMiddleware)
 })

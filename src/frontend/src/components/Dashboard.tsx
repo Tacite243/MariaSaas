@@ -20,22 +20,6 @@ interface DashboardStats {
   recentSales: { createdAt: string | Date; totalAmount: number }[]
 }
 
-// --- CORRECTION TYPESCRIPT ---
-// On déclare "stats" pour que TypeScript sache qu'il existe dans window.api
-declare global {
-  interface Window {
-    api: {
-      stats: {
-        getDashboard: () => Promise<{
-          success: boolean
-          data?: DashboardStats
-          error?: { message: string }
-        }>
-      }
-    }
-  }
-}
-
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)

@@ -56,6 +56,27 @@ const api = {
   },
   stats: {
     getDashboard: () => ipcRenderer.invoke('stats:get-dashboard')
+  },
+  pos: {
+    openSession: (data) => ipcRenderer.invoke('pos:open-session', data),
+    closeSession: (data) => ipcRenderer.invoke('pos:close-session', data),
+    getActiveSession: (cashierId: string) => ipcRenderer.invoke('pos:get-active-session', cashierId),
+    getZReport: (sessionId: string) => ipcRenderer.invoke('pos:get-z-report', { sessionId }),
+    printReceipt: (data) => ipcRenderer.invoke('pos:print-receipt', data),
+    getPrinters: () => ipcRenderer.invoke('pos:get-printers'),
+    getPrintSettings: () => ipcRenderer.invoke('pos:get-print-settings'),
+    updatePrintSettings: (data) => ipcRenderer.invoke('pos:update-print-settings', data),
+    findProductByCode: (code: string) => ipcRenderer.invoke('pos:find-product-by-code', { code }),
+    getAuditLogs: () => ipcRenderer.invoke('pos:get-audit-logs')
+  },
+  cashSession: {
+    open: (data) => ipcRenderer.invoke('pos:open-session', data),
+    close: (data) => ipcRenderer.invoke('pos:close-session', data),
+    getActive: (cashierId: string) => ipcRenderer.invoke('pos:get-active-session', cashierId),
+    getZReport: (sessionId: string) => ipcRenderer.invoke('pos:get-z-report', { sessionId })
+  },
+  qr: {
+    generate: (text: string, size?: number) => ipcRenderer.invoke('qr:generate', { text, size })
   }
 }
 

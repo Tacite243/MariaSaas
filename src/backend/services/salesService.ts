@@ -1,6 +1,8 @@
 import { prisma } from '../lib/prisma'
 import { CreateSaleInput } from '../../shared/schemas/salesSchema'
 import { Prisma } from '@prisma/client'
+import { auditService } from './auditService'
+import { AuditAction } from '../../shared/types/pos.types'
 
 export class SalesService {
   // Méthode utilitaire pour générer un numéro de ticket
@@ -89,17 +91,28 @@ export class SalesService {
           sellerId: data.sellerId,
           clientId: data.clientId,
           paymentMethod: data.paymentMethod,
+          currency: data.currency,
+          exchangeRate: data.exchangeRate,
+          cashSessionId: data.cashSessionId,
 
           subTotal: saleSubTotal,
           discountAmount: data.discountAmount,
-          taxAmount: 0, // A implémenter selon règles fiscales
+          taxAmount: 0,
           totalAmount: saleSubTotal - data.discountAmount,
 
           items: {
             create: finalSaleItems
           }
         },
-        include: { items: true }
+        include: { items: { include: { product: { select: { name: true, dci: true } } } }, seller: { select: { name: true } } }
+      })
+
+      await auditService.log({
+        action: AuditAction.SALE_COMPLETED,
+        userId: data.sellerId,
+        sessionId: data.cashSessionId,
+        details: `Vente ${sale.reference} — ${sale.totalAmount} ${data.currency}`,
+        metadata: { saleId: sale.id, exchangeRate: data.exchangeRate }
       })
 
       return sale

@@ -18,3 +18,24 @@
   3. Add type definition in `src/preload/index.d.ts`.
   4. Call from React using `window.api.methodName`.
   
+
+# MariaSaaS - Directives Cursor
+
+Tu es un développeur Senior Full-Stack spécialisé en Electron, React, TypeScript et Prisma.
+Tu travailles sur "MariaSaaS", un ERP/POS open source pour pharmacies en Afrique subsaharienne (offline-first).
+
+## Architecture & Bonnes pratiques
+1. **Electron & Sécurité** :
+   - Tout accès à la base de données (Prisma/SQLite) se fait EXCLUSIVEMENT dans le processus Main (`electron/main` ou `src/main`).
+   - La communication Main <-> Renderer passe par le pont IPC sécurisé (`contextBridge` dans le preload). Ne jamais exposer Prisma ou Node.js directement au Renderer.
+2. **TypeScript & Validation** :
+   - TypeScript strict partout.
+   - Valider toutes les entrées utilisateur et payloads IPC avec Zod.
+3. **UI / UX** :
+   - React 18+, Tailwind CSS, Shadcn UI / Radix UI, Lucide Icons.
+   - État global avec Redux Toolkit.
+   - L'interface doit être ultra-rapide pour la saisie au clavier (raccourcis caisse : F1, F2, Entrée, scanner code-barres).
+4. **Métier Pharmaceutique** :
+   - Algorithme FEFO (First Expired, First Out) obligatoire lors du déstockage de lots.
+   - Double devise : les calculs financiers doivent gérer USD/CDF sans erreurs d'arrondi (utiliser `decimal.js` ou entiers en centimes).
+   - Hors-ligne complet : aucune dépendance externe bloquante.

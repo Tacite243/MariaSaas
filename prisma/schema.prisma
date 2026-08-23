@@ -22,9 +22,11 @@ model User {
   lastLogin DateTime?
 
   createdRequisitions Requisition[]
-  sales               Sale[] // Relation inverse ajoutée (Vendeur)
+  sales               Sale[]
   exchangeRates       ExchangeRate[]
   cashMovements       CashMovement[]
+  cashSessions        CashSession[]
+  auditLogs           AuditLog[]
 }
 
 // --- GESTION DE STOCK ---
@@ -160,8 +162,13 @@ model Sale {
   currency     String @default("CDF") // CDF ou USD
   exchangeRate Float  @default(1) // Taux utilisé lors de la vente (pour figer la valeur)
 
+  cashSessionId String?
+  cashSession   CashSession? @relation(fields: [cashSessionId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([cashSessionId])
 }
 
 model SaleItem {
@@ -205,4 +212,81 @@ model CashMovement {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// --- SESSION DE CAISSE (Z DE CAISSE) ---
+model CashSession {
+  id        String    @id @default(uuid())
+  status    String    @default("OPEN") // OPEN | CLOSED
+  openedAt  DateTime  @default(now())
+  closedAt  DateTime?
+
+  cashierId String
+  cashier   User   @relation(fields: [cashierId], references: [id])
+
+  exchangeRate Float @default(1)
+
+  initialUsdCents Int @default(0)
+  initialCdfCents Int @default(0)
+
+  systemUsdCents      Int?
+  systemCdfCents      Int?
+  declaredUsdCents    Int?
+  declaredCdfCents    Int?
+  discrepancyUsdCents Int?
+  discrepancyCdfCents Int?
+
+  sales              Sale[]
+  denominationCounts CashDenominationCount[]
+  auditLogs          AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cashierId])
+  @@index([status])
+  @@index([openedAt])
+}
+
+model CashDenominationCount {
+  id           String      @id @default(uuid())
+  sessionId    String
+  session      CashSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  currency     String // USD | CDF
+  denomination Int
+  quantity     Int
+  totalMinor   Int // Montant en unités mineures (centimes USD, francs CDF)
+
+  @@unique([sessionId, currency, denomination])
+  @@index([sessionId])
+}
+
+// --- AUDIT PERSISTÉ ---
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  details   String?
+  metadata  String?
+  sessionId String?
+  session   CashSession? @relation(fields: [sessionId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// --- PARAMÈTRES LOCAUX (IMPRESSION) ---
+model AppSettings {
+  id              String  @id @default("default")
+  defaultPrinter  String?
+  receiptWidth    String  @default("80") // 58 | 80
+  pharmacyName    String  @default("Pharmacie Maria")
+  pharmacyAddress String?
+  pharmacyPhone   String?
+  pharmacyRccm    String?
+  pharmacyIdNat   String?
+  updatedAt       DateTime @updatedAt
 }

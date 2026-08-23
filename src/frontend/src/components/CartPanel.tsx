@@ -36,9 +36,7 @@ export const CartPanel: React.FC<Props> = ({
   const displayTotal = formatPrice(safeSubTotal);
 
   const handleCheckoutClick = () => {
-    if (confirm(`Confirmer l'encaissement de ${displayTotal.value} ${displayTotal.symbol} ?`)) {
-      onCheckout()
-    }
+    onCheckout()
   }
 
   return (

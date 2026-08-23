@@ -77,6 +77,27 @@ declare global {
         update: (data: UpdateClientInput, role: string) => Promise<ApiResponse<ClientDTO>>
         delete: (id: string, role: string) => Promise<ApiResponse<void>>
       }
+      pos: {
+        openSession: (data: import('../shared/schemas/pos.schema').CashSessionOpenInput) => Promise<ApiResponse<unknown>>
+        closeSession: (data: import('../shared/schemas/pos.schema').CashSessionCloseInput) => Promise<ApiResponse<unknown>>
+        getActiveSession: (cashierId: string) => Promise<ApiResponse<unknown>>
+        getZReport: (sessionId: string) => Promise<ApiResponse<unknown>>
+        printReceipt: (data: import('../shared/schemas/pos.schema').PrintReceiptInput) => Promise<ApiResponse<{ success: boolean }>>
+        getPrinters: () => Promise<ApiResponse<{ name: string; displayName: string; isDefault: boolean }[]>>
+        getPrintSettings: () => Promise<ApiResponse<unknown>>
+        updatePrintSettings: (data: import('../shared/schemas/pos.schema').PrintSettingsInput) => Promise<ApiResponse<unknown>>
+        findProductByCode: (code: string) => Promise<ApiResponse<unknown>>
+        getAuditLogs: () => Promise<ApiResponse<unknown[]>>
+      }
+      cashSession: {
+        open: (data: import('../shared/schemas/pos.schema').CashSessionOpenInput) => Promise<ApiResponse<unknown>>
+        close: (data: import('../shared/schemas/pos.schema').CashSessionCloseInput) => Promise<ApiResponse<unknown>>
+        getActive: (cashierId: string) => Promise<ApiResponse<unknown>>
+        getZReport: (sessionId: string) => Promise<ApiResponse<unknown>>
+      }
+      qr: {
+        generate: (text: string, size?: number) => Promise<ApiResponse<string>>
+      }
     }
   }
 }

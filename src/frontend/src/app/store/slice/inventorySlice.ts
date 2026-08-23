@@ -1,28 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { ProductInput, CreateRequisitionInput } from '@shared/schemas/inventorySchema'
-import { ApiResponse, ProductDTO, RequisitionDTO, SupplierDTO } from '@shared/types'
+import { ProductDTO, SupplierDTO } from '@shared/types'
 import { CreateSupplierInput, UpdateSupplierInput } from '@shared/schemas/supplierSchema'
 import { RootState } from '../store'
-
-
-declare global {
-  interface Window {
-    api: {
-      inventory: {
-        getProducts: () => Promise<ApiResponse<ProductDTO[]>>
-        createProduct: (data: ProductInput) => Promise<ApiResponse<ProductDTO>>
-        updateProduct: (id: string, data: Partial<ProductInput>) => Promise<ApiResponse<ProductDTO>>
-        deleteProduct: (id: string) => Promise<ApiResponse<void>>
-        createDraft: (data: CreateRequisitionInput) => Promise<ApiResponse<RequisitionDTO>>
-        validateRequisition: (id: string) => Promise<ApiResponse<RequisitionDTO>>
-        getSuppliers: () => Promise<ApiResponse<SupplierDTO[]>>
-        createSupplier: (data: CreateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
-        updateSupplier: (data: UpdateSupplierInput, role: string) => Promise<ApiResponse<SupplierDTO>>
-        deleteSupplier: (id: string, role: string) => Promise<ApiResponse<void>>
-      }
-    }
-  }
-}
 
 // Les types locaux utiles au composant
 export interface Requisition {

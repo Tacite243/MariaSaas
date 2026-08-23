@@ -10,6 +10,9 @@ import { setupSalesHandlers } from './ipc/sales'
 import { setupStatsHandlers } from './ipc/stats'
 import { setupFinanceHandlers } from './ipc/finance'
 import { setupClientHandlers } from './ipc/clients'
+import { setupPosHandlers } from './ipc/posHandlers'
+import { setupQrHandlers } from './ipc/qrHandlers'
+import { setMainWindow } from './services/PrintService'
 import { autoUpdater } from 'electron-updater'
 
 
@@ -63,6 +66,7 @@ function createWindow(): void {
 
   mainWindow.webContents.once('did-finish-load', () => {
     // console.log('✅ did-finish-load → show()')
+    setMainWindow(mainWindow)
     mainWindow.show()
   })
 
@@ -108,6 +112,8 @@ app.whenReady().then(async () => {
   setupStatsHandlers()
   setupFinanceHandlers()
   setupClientHandlers()
+  setupPosHandlers()
+  setupQrHandlers()
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {
     createWindow()
