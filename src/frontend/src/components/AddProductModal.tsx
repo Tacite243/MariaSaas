@@ -23,6 +23,7 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
         name: '', dci: '', code: '', codeCip7: '', codeAtc: '',
         category: 'Générique', form: '', dosage: '', packaging: '',
         description: '', isPrescriptionRequired: false,
+        isNarcotic: false, narcoticSchedule: null as ProductInput['narcoticSchedule'],
         minStock: 5, maxStock: 0, location: '',
         sellPrice: 0, buyingPrice: 0, vatRate: 0
     });
@@ -42,6 +43,8 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                 packaging: productToEdit.packaging || '',
                 description: productToEdit.description || '',
                 isPrescriptionRequired: productToEdit.isPrescriptionRequired,
+                isNarcotic: productToEdit.isNarcotic ?? false,
+                narcoticSchedule: (productToEdit.narcoticSchedule ?? null) as ProductInput['narcoticSchedule'],
                 minStock: productToEdit.minStock,
                 maxStock: productToEdit.maxStock || 0,
                 location: productToEdit.location || '',
@@ -153,13 +156,29 @@ export const AddProductModal: React.FC<Props> = ({ onClose, onSubmit, productToE
                             </div>
                         </div>
 
-                        {/* Ordonnance */}
+                        {/* Ordonnance & Stupéfiants */}
                         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30 mt-4 transition-all hover:bg-red-100/50">
                             <input type="checkbox" id="prescription" checked={newMed.isPrescriptionRequired} onChange={e => setNewMed({ ...newMed, isPrescriptionRequired: e.target.checked })} className="w-5 h-5 accent-red-600 cursor-pointer rounded" />
                             <label htmlFor="prescription" className="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer select-none flex-1">
-                                Exige une ordonnance médicale (Liste I/II / Stupéfiants)
+                                Exige une ordonnance médicale (Liste I/II)
                             </label>
                         </div>
+                        <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/10 rounded-xl border border-purple-100 dark:border-purple-900/30 transition-all">
+                            <input type="checkbox" id="narcotic" checked={newMed.isNarcotic ?? false} onChange={e => setNewMed({ ...newMed, isNarcotic: e.target.checked, narcoticSchedule: e.target.checked ? (newMed.narcoticSchedule || 'TABLE_A') : null })} className="w-5 h-5 accent-purple-600 cursor-pointer rounded" />
+                            <label htmlFor="narcotic" className="text-sm font-bold text-purple-700 dark:text-purple-400 cursor-pointer select-none flex-1">
+                                Stupéfiant / Psychotrope (Tableau A ou B)
+                            </label>
+                        </div>
+                        {newMed.isNarcotic && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-bold text-slate-500 ml-1">Classification réglementaire</label>
+                                <select className={inputClass} value={newMed.narcoticSchedule || 'TABLE_A'} onChange={e => setNewMed({ ...newMed, narcoticSchedule: e.target.value as ProductInput['narcoticSchedule'] })}>
+                                    <option value="TABLE_A">Tableau A — Stupéfiants</option>
+                                    <option value="TABLE_B">Tableau B — Psychotropes</option>
+                                    <option value="NARCOTIC">Stupéfiant (registre renforcé)</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
 
                     {/* Finances (MODIFIÉ POUR FORCER USD) */}

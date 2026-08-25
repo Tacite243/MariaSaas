@@ -17,11 +17,11 @@ export class StatsService {
         });
 
         // 2. Alertes Stock Bas
-        const lowStockCount = await prisma.product.count({
-            where: {
-                currentStock: { lte: 5 } // Ou utiliser le champ minStock dynamique : currentStock <= minStock (requête raw nécessaire pour ça, on simplifie ici)
-            }
-        });
+        const lowStockResult = await prisma.$queryRaw<{ count: number }[]>`
+            SELECT COUNT(*) as count FROM Product
+            WHERE currentStock <= minStock AND minStock > 0
+        `
+        const lowStockCount = Number(lowStockResult[0]?.count ?? 0)
 
         // 3. Valeur du Stock (Prix Achat)
         // Note: Prisma ne permet pas facilement de faire sum(currentStock * buyingPrice) directement sans raw query

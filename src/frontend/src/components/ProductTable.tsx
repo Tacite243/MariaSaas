@@ -3,6 +3,7 @@ import { UIMedication } from '@renderer/features/inventory/types'
 import { deleteProduct } from '@renderer/app/store/slice/inventorySlice'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@renderer/app/store/store'
+import { ProductQr } from '@renderer/components/shared/ProductQr'
 
 
 
@@ -43,14 +44,7 @@ export const ProductTable: React.FC<Props> = ({ medications, onSelect, onEdit })
               {/* Article */}
               <td className="px-6 py-4">
                 <div className="flex items-center gap-4">
-                  {med.qrCode && (
-                    <div
-                      className="w-10 h-10 bg-white p-1 rounded-lg border dark:border-slate-700 flex-none cursor-pointer"
-                      onClick={() => onSelect(med)}
-                    >
-                      <img src={med.qrCode} alt="QR" className="w-full h-full object-contain" />
-                    </div>
-                  )}
+                  <ProductQr code={med.code} onClick={() => onSelect(med)} />
                   <div className="flex flex-col min-w-0">
                     <span className="font-black text-slate-900 dark:text-white text-sm truncate">
                       {med.name}

@@ -2,11 +2,22 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { CreateSaleInput, CartItemInput } from '@shared/schemas/salesSchema'
 import { RootState } from '../store'
 
+import { PrescriptionInput } from '@shared/schemas/stock.schema'
+
+export interface PrescriptionCartData extends Omit<PrescriptionInput, 'productId' | 'quantityDispensed'> {
+  quantityDispensed: number
+}
+
 // Type pour un article dans le panier (UI)
 export interface CartItemUI extends CartItemInput {
   name: string
   code: string
   maxStock: number
+  isPrescriptionRequired?: boolean
+  isNarcotic?: boolean
+  fefoExpiryDate?: string | null
+  fefoDaysUntilExpiry?: number | null
+  prescription?: PrescriptionCartData | null
 }
 
 // Type partiel pour l'affichage historique
@@ -50,15 +61,27 @@ export const processCheckout = createAsyncThunk(
     const state = getState() as RootState
     const { cart, paymentMethod, discount, currentCustomer } = state.sales
     const { user } = state.auth
+    const { currency, exchangeRate } = state.session
+    const { activeSession } = state.cashSession
 
     if (!user) return rejectWithValue('Vendeur non identifié')
     if (cart.length === 0) return rejectWithValue('Panier vide')
+
+    const rxMissing = cart.filter(
+      (i) => (i.isPrescriptionRequired || i.isNarcotic) && !i.prescription
+    )
+    if (rxMissing.length > 0) {
+      return rejectWithValue('Ordonnance requise pour un ou plusieurs produits')
+    }
 
     const payload: CreateSaleInput = {
       sellerId: user.id,
       clientId: currentCustomer || undefined,
       paymentMethod,
       discountAmount: discount,
+      currency,
+      exchangeRate,
+      cashSessionId: activeSession?.id,
       items: cart.map((item) => ({
         productId: item.productId,
         quantity: item.quantity,
@@ -69,7 +92,28 @@ export const processCheckout = createAsyncThunk(
     try {
       const response = await window.api.sales.create(payload)
       if (!response.success) throw new Error(response.error?.message)
-      return response.data
+
+      const sale = response.data
+      const rxItems = cart.filter((i) => i.isPrescriptionRequired || i.isNarcotic)
+      if (rxItems.length > 0 && sale?.id) {
+        await window.api.prescription.create({
+          saleId: sale.id,
+          validatedById: user.id,
+          entries: rxItems.map((i) => ({
+            productId: i.productId,
+            quantityDispensed: i.quantity,
+            prescriberName: i.prescription!.prescriberName,
+            prescriberQualification: i.prescription!.prescriberQualification,
+            prescriberLicense: i.prescription!.prescriberLicense,
+            patientName: i.prescription!.patientName,
+            patientAge: i.prescription!.patientAge,
+            patientIdDocument: i.prescription!.patientIdDocument,
+            prescriptionDate: i.prescription!.prescriptionDate
+          }))
+        })
+      }
+
+      return sale
     } catch (err: unknown) {
       const error = err as Error
       return rejectWithValue(error.message)
@@ -122,6 +166,13 @@ const salesSlice = createSlice({
     setPaymentMethod: (state, action: PayloadAction<SalesState['paymentMethod']>) => {
       state.paymentMethod = action.payload
     },
+    setItemPrescription: (
+      state,
+      action: PayloadAction<{ productId: string; prescription: PrescriptionCartData }>
+    ) => {
+      const item = state.cart.find((i) => i.productId === action.payload.productId)
+      if (item) item.prescription = action.payload.prescription
+    },
     clearCart: (state) => {
       state.cart = []
       state.error = null
@@ -161,6 +212,6 @@ const salesSlice = createSlice({
   }
 })
 
-export const { addToCart, removeFromCart, updateQuantity, setPaymentMethod, clearCart } =
+export const { addToCart, removeFromCart, updateQuantity, setPaymentMethod, setItemPrescription, clearCart } =
   salesSlice.actions
 export default salesSlice.reducer

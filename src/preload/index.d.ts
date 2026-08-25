@@ -12,6 +12,8 @@ import {
   SaleDTO,
   RequisitionDTO,
   CashMovementDTO,
+  CashJournalEntry,
+  CreateMovementInput,
   DashboardStatsDTO,
   SupplierDTO,
   ClientDTO,
@@ -60,13 +62,8 @@ declare global {
         getHistory: (filter?: {
           from: Date | string
           to: Date | string
-        }) => Promise<ApiResponse<CashMovementDTO[]>>
-        createMovement: (data: {
-          type: 'IN' | 'OUT'
-          amount: number
-          description: string
-          performedBy: string
-        }) => Promise<ApiResponse<CashMovementDTO>>
+        }) => Promise<ApiResponse<CashJournalEntry[]>>
+        createMovement: (data: CreateMovementInput) => Promise<ApiResponse<CashMovementDTO>>
       }
       stats: {
         getDashboard: () => Promise<ApiResponse<DashboardStatsDTO>>
@@ -76,6 +73,60 @@ declare global {
         create: (data: CreateClientInput, role: string) => Promise<ApiResponse<ClientDTO>>
         update: (data: UpdateClientInput, role: string) => Promise<ApiResponse<ClientDTO>>
         delete: (id: string, role: string) => Promise<ApiResponse<void>>
+      }
+      pos: {
+        openSession: (data: import('../shared/schemas/pos.schema').CashSessionOpenInput) => Promise<ApiResponse<unknown>>
+        closeSession: (data: import('../shared/schemas/pos.schema').CashSessionCloseInput) => Promise<ApiResponse<unknown>>
+        getActiveSession: (cashierId: string) => Promise<ApiResponse<unknown>>
+        getZReport: (sessionId: string) => Promise<ApiResponse<unknown>>
+        printReceipt: (data: import('../shared/schemas/pos.schema').PrintReceiptInput) => Promise<ApiResponse<{ success: boolean }>>
+        getPrinters: () => Promise<ApiResponse<{ name: string; displayName: string; isDefault: boolean }[]>>
+        getPrintSettings: () => Promise<ApiResponse<unknown>>
+        updatePrintSettings: (data: import('../shared/schemas/pos.schema').PrintSettingsInput) => Promise<ApiResponse<unknown>>
+        findProductByCode: (code: string) => Promise<ApiResponse<unknown>>
+        getAuditLogs: () => Promise<ApiResponse<unknown[]>>
+      }
+      cashSession: {
+        open: (data: import('../shared/schemas/pos.schema').CashSessionOpenInput) => Promise<ApiResponse<unknown>>
+        close: (data: import('../shared/schemas/pos.schema').CashSessionCloseInput) => Promise<ApiResponse<unknown>>
+        getActive: (cashierId: string) => Promise<ApiResponse<unknown>>
+        getZReport: (sessionId: string) => Promise<ApiResponse<unknown>>
+      }
+      qr: {
+        generate: (text: string, size?: number) => Promise<ApiResponse<string>>
+      }
+      stock: {
+        getExpiringBatches: () => Promise<ApiResponse<import('../shared/types/stock.types').ExpiryAlertSummaryDTO>>
+        writeOff: (data: import('../shared/schemas/stock.schema').WriteOffInput) => Promise<ApiResponse<unknown>>
+        createAudit: (data: import('../shared/schemas/stock.schema').StockAuditCreateInput) => Promise<ApiResponse<unknown>>
+        addAuditItems: (data: import('../shared/schemas/stock.schema').StockAuditAddItemsInput) => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO>>
+        completeAudit: (data: import('../shared/schemas/stock.schema').StockAuditCompleteInput) => Promise<ApiResponse<unknown>>
+        listAudits: () => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO[]>>
+        getAudit: (auditId: string) => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO>>
+      }
+      prescription: {
+        create: (data: import('../shared/schemas/stock.schema').CreatePrescriptionsInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
+        list: (filter?: import('../shared/schemas/stock.schema').PrescriptionFilterInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
+        print: (filter?: import('../shared/schemas/stock.schema').PrescriptionFilterInput) => Promise<ApiResponse<{ success: boolean }>>
+      }
+      backup: {
+        getStatus: () => Promise<ApiResponse<import('../shared/types/backup.types').BackupStatusDTO>>
+        listHistory: () => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO[]>>
+        listDrives: () => Promise<ApiResponse<import('../shared/types/backup.types').RemovableDriveDTO[]>>
+        create: (data: import('../shared/schemas/backup.schema').BackupCreateInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO>>
+        export: (data: import('../shared/schemas/backup.schema').BackupExportInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO>>
+        verifyFile: (data: import('../shared/schemas/backup.schema').BackupVerifyInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupVerifyResultDTO>>
+        restore: (data: import('../shared/schemas/backup.schema').BackupRestoreInput) => Promise<ApiResponse<{ requiresRestart: boolean }>>
+        updateSettings: (data: import('../shared/schemas/backup.schema').BackupSettingsInput) => Promise<ApiResponse<unknown>>
+        pickRestoreFile: () => Promise<ApiResponse<string | null>>
+        pickExportFolder: () => Promise<ApiResponse<string | null>>
+      }
+      lan: {
+        getStatus: () => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
+        configure: (data: import('../shared/schemas/lan.schema').LanConfigInput) => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
+        startServer: () => Promise<ApiResponse<import('../shared/types/lan.types').LanPairingInfoDTO>>
+        stopServer: () => Promise<ApiResponse<boolean>>
+        pairClient: (data: import('../shared/schemas/lan.schema').LanPairInput) => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
       }
     }
   }

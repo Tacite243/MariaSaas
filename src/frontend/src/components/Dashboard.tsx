@@ -4,7 +4,8 @@ import { AppDispatch } from '@renderer/app/store/store'
 import { fetchDailyRate } from '@renderer/app/store/slice/sessionSlice'
 import { StatCard } from './StatCard'
 import { SalesChart } from './SalesCharts'
-import { AlertsPanel } from './AlertsPanel'
+import { ExpiryAlertsPanel } from './inventory/ExpiryAlertsPanel'
+import { BackupAlertBanner } from './settings/BackupAlertBanner'
 import { VolumeChart } from './VolumeChart'
 import { AIBanner } from './AIBanner'
 import { RateWidget } from './RateWidget'
@@ -18,22 +19,6 @@ interface DashboardStats {
   lowStockCount: number
   stockValue: number
   recentSales: { createdAt: string | Date; totalAmount: number }[]
-}
-
-// --- CORRECTION TYPESCRIPT ---
-// On déclare "stats" pour que TypeScript sache qu'il existe dans window.api
-declare global {
-  interface Window {
-    api: {
-      stats: {
-        getDashboard: () => Promise<{
-          success: boolean
-          data?: DashboardStats
-          error?: { message: string }
-        }>
-      }
-    }
-  }
 }
 
 const Dashboard: React.FC = () => {
@@ -89,6 +74,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+      <BackupAlertBanner />
       {/* 1. TOP BAR : Title & Exchange Rate */}
       <div className="relative overflow-hidden flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 rounded-[1rem] border border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-200/40 dark:shadow-black/20 group">
         {/* Decorative ambient background */}
@@ -188,7 +174,7 @@ const Dashboard: React.FC = () => {
           <SalesChart data={chartData.length > 0 ? chartData : [{ name: 'Auj', sales: 0 }]} />
         </div>
 
-        <AlertsPanel count={stats.lowStockCount} />
+        <ExpiryAlertsPanel lowStockCount={stats.lowStockCount} />
 
         <div className="xl:col-span-3">
           <AIBanner />

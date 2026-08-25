@@ -11,6 +11,8 @@ import CategoryBadge from './CategoryBadge'
 import { useInventoryLogic } from '@renderer/hooks/useInventoryLogic'
 import { createProduct, updateProduct } from '@renderer/app/store/slice/inventorySlice'
 import { CATEGORIES, UIMedication } from '../features/inventory/types'
+import { StockAuditPanel } from './inventory/StockAuditPanel'
+import { PrescriptionRegisterPage } from './inventory/PrescriptionRegisterPage'
 import { ProductInput } from '@shared/schemas/inventorySchema'
 
 
@@ -22,7 +24,7 @@ const Inventory: React.FC = () => {
   const { enrichedMeds, isLoading, error, refresh, dismissError, dispatch } = useInventoryLogic()
 
   // State UI Local
-  const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'orders' | 'ai'>('stock')
+  const [activeTab, setActiveTab] = useState<'stock' | 'lots' | 'orders' | 'audit' | 'ordonnancier'>('stock')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Tous')
 
@@ -205,7 +207,8 @@ const Inventory: React.FC = () => {
                 { id: 'stock', label: 'Médocs', icon: '📦' },
                 { id: 'lots', label: 'Lots', icon: '🏷️' },
                 { id: 'orders', label: 'Commandes', icon: '📋' },
-                { id: 'ai', label: 'IA', icon: '✨' }
+                { id: 'audit', label: 'Inventaire', icon: '📊' },
+                { id: 'ordonnancier', label: 'Ordonnancier', icon: '📜' }
               ] as const
             ).map((tab) => (
               <button
@@ -251,9 +254,14 @@ const Inventory: React.FC = () => {
           )}
           {activeTab === 'lots' && <LotTable medications={filteredMedications} />}
           {activeTab === 'orders' && <RequisitionList />}
-          {activeTab === 'ai' && (
-            <div className="p-10 text-center text-slate-400">
-              Module IA en cours de chargement...
+          {activeTab === 'audit' && (
+            <div className="p-6">
+              <StockAuditPanel />
+            </div>
+          )}
+          {activeTab === 'ordonnancier' && (
+            <div className="p-6">
+              <PrescriptionRegisterPage />
             </div>
           )}
         </div>

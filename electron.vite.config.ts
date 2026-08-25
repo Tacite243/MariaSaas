@@ -7,9 +7,10 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       lib: {
-        entry: resolve(__dirname, 'src/backend/index.ts')
+        entry: resolve(__dirname, 'src/backend/main.ts')
       },
       rollupOptions: {
+        // bcryptjs et @prisma/client doivent absolument rester externes
         external: ['bcryptjs', '@prisma/client']
       }
     },
@@ -19,27 +20,24 @@ export default defineConfig({
       }
     }
   },
-
   preload: {
     plugins: [externalizeDepsPlugin()],
     build: {
       lib: {
         entry: resolve(__dirname, 'src/preload/index.ts')
       }
-    },
-    resolve: {
-      alias: {
-        '@shared': resolve(__dirname, 'src/shared')
-      }
     }
   },
-
   renderer: {
+    // On définit la racine du projet frontend
     root: resolve(__dirname, 'src/frontend'),
     build: {
       rollupOptions: {
+        // L'input doit être relatif au "root" défini juste au-dessus
         input: resolve(__dirname, 'src/frontend/index.html')
-      }
+      },
+      // On s'assure que le dossier de sortie est correct
+      outDir: resolve(__dirname, 'out/renderer')
     },
     resolve: {
       alias: {

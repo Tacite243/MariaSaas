@@ -1,0 +1,44 @@
+name: Release MariaSaaS
+
+on:
+  push:
+    tags:
+      - 'v*' # Se déclenche si tu pousses un tag comme "v1.0.0"
+
+jobs:
+  build:
+    # 🌟 LA MAGIE EST ICI : On lance 3 serveurs différents simultanément !
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Vite App
+        run: npm run build
+
+      - name: Compile & Release Electron App
+        uses: samuelmeuli/action-electron-builder@v1
+        with:
+          # Le token est fourni automatiquement par GitHub pour publier la release
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release: true
+          
+          # Force le build approprié selon l'OS du serveur
+          mac_certs: ${{ secrets.MAC_CERTS }} # Si tu as un compte Apple Dev plus tard
+          mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}

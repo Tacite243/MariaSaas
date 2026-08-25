@@ -56,6 +56,60 @@ const api = {
   },
   stats: {
     getDashboard: () => ipcRenderer.invoke('stats:get-dashboard')
+  },
+  pos: {
+    openSession: (data) => ipcRenderer.invoke('pos:open-session', data),
+    closeSession: (data) => ipcRenderer.invoke('pos:close-session', data),
+    getActiveSession: (cashierId: string) => ipcRenderer.invoke('pos:get-active-session', cashierId),
+    getZReport: (sessionId: string) => ipcRenderer.invoke('pos:get-z-report', { sessionId }),
+    printReceipt: (data) => ipcRenderer.invoke('pos:print-receipt', data),
+    getPrinters: () => ipcRenderer.invoke('pos:get-printers'),
+    getPrintSettings: () => ipcRenderer.invoke('pos:get-print-settings'),
+    updatePrintSettings: (data) => ipcRenderer.invoke('pos:update-print-settings', data),
+    findProductByCode: (code: string) => ipcRenderer.invoke('pos:find-product-by-code', { code }),
+    getAuditLogs: () => ipcRenderer.invoke('pos:get-audit-logs')
+  },
+  cashSession: {
+    open: (data) => ipcRenderer.invoke('pos:open-session', data),
+    close: (data) => ipcRenderer.invoke('pos:close-session', data),
+    getActive: (cashierId: string) => ipcRenderer.invoke('pos:get-active-session', cashierId),
+    getZReport: (sessionId: string) => ipcRenderer.invoke('pos:get-z-report', { sessionId })
+  },
+  qr: {
+    generate: (text: string, size?: number) => ipcRenderer.invoke('qr:generate', { text, size })
+  },
+  stock: {
+    getExpiringBatches: () => ipcRenderer.invoke('stock:get-expiring-batches'),
+    writeOff: (data) => ipcRenderer.invoke('stock:write-off', data),
+    createAudit: (data) => ipcRenderer.invoke('stock:create-audit', data),
+    addAuditItems: (data) => ipcRenderer.invoke('stock:add-audit-items', data),
+    completeAudit: (data) => ipcRenderer.invoke('stock:complete-audit', data),
+    listAudits: () => ipcRenderer.invoke('stock:list-audits'),
+    getAudit: (auditId: string) => ipcRenderer.invoke('stock:get-audit', { auditId })
+  },
+  prescription: {
+    create: (data) => ipcRenderer.invoke('prescription:create', data),
+    list: (filter) => ipcRenderer.invoke('prescription:list', filter),
+    print: (filter) => ipcRenderer.invoke('prescription:print', filter)
+  },
+  backup: {
+    getStatus: () => ipcRenderer.invoke('backup:get-status'),
+    listHistory: () => ipcRenderer.invoke('backup:list-history'),
+    listDrives: () => ipcRenderer.invoke('backup:list-drives'),
+    create: (data) => ipcRenderer.invoke('backup:create', data),
+    export: (data) => ipcRenderer.invoke('backup:export', data),
+    verifyFile: (data) => ipcRenderer.invoke('backup:verify-file', data),
+    restore: (data) => ipcRenderer.invoke('backup:restore', data),
+    updateSettings: (data) => ipcRenderer.invoke('backup:update-settings', data),
+    pickRestoreFile: () => ipcRenderer.invoke('backup:pick-restore-file'),
+    pickExportFolder: () => ipcRenderer.invoke('backup:pick-export-folder')
+  },
+  lan: {
+    getStatus: () => ipcRenderer.invoke('lan:get-status'),
+    configure: (data) => ipcRenderer.invoke('lan:configure', data),
+    startServer: () => ipcRenderer.invoke('lan:start-server'),
+    stopServer: () => ipcRenderer.invoke('lan:stop-server'),
+    pairClient: (data) => ipcRenderer.invoke('lan:pair-client', data)
   }
 }
 

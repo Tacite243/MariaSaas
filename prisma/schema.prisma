@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "windows"]
+  binaryTargets = ["native", "windows", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -22,9 +22,15 @@ model User {
   lastLogin DateTime?
 
   createdRequisitions Requisition[]
-  sales               Sale[] // Relation inverse ajoutée (Vendeur)
+  sales               Sale[]
   exchangeRates       ExchangeRate[]
   cashMovements       CashMovement[]
+  cashSessions        CashSession[]
+  auditLogs           AuditLog[]
+  validatedPrescriptions PrescriptionRegister[]
+  stockAuditsCreated  StockAudit[] @relation("AuditCreator")
+  stockAuditsCompleted StockAudit[] @relation("AuditCompleter")
+  stockWriteOffs      StockWriteOff[]
 }
 
 // --- GESTION DE STOCK ---
@@ -53,6 +59,8 @@ model Product {
   packaging              String?
   description            String?
   isPrescriptionRequired Boolean @default(false)
+  isNarcotic             Boolean @default(false)
+  narcoticSchedule       String? // TABLE_A | TABLE_B | NARCOTIC
 
   minStock     Int     @default(5)
   maxStock     Int?
@@ -68,7 +76,10 @@ model Product {
 
   lots             StockLot[]
   requisitionItems RequisitionItem[]
-  saleItems        SaleItem[] // Relation inverse ajoutée
+  saleItems        SaleItem[]
+  prescriptionRegisters PrescriptionRegister[]
+  stockAuditItems  StockAuditItem[]
+  writeOffs        StockWriteOff[]
 }
 
 model StockLot {
@@ -81,7 +92,12 @@ model StockLot {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  saleItems SaleItem[] // Relation inverse ajoutée (Traçabilité lot vendu)
+  saleItems SaleItem[]
+  stockAuditItems StockAuditItem[]
+  writeOffs   StockWriteOff[]
+
+  @@index([expiryDate])
+  @@index([productId, expiryDate])
 }
 
 model Requisition {
@@ -160,8 +176,15 @@ model Sale {
   currency     String @default("CDF") // CDF ou USD
   exchangeRate Float  @default(1) // Taux utilisé lors de la vente (pour figer la valeur)
 
+  cashSessionId String?
+  cashSession   CashSession? @relation(fields: [cashSessionId], references: [id])
+
+  prescriptions PrescriptionRegister[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([cashSessionId])
 }
 
 model SaleItem {
@@ -205,4 +228,203 @@ model CashMovement {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// --- SESSION DE CAISSE (Z DE CAISSE) ---
+model CashSession {
+  id        String    @id @default(uuid())
+  status    String    @default("OPEN") // OPEN | CLOSED
+  openedAt  DateTime  @default(now())
+  closedAt  DateTime?
+
+  cashierId String
+  cashier   User   @relation(fields: [cashierId], references: [id])
+
+  exchangeRate Float @default(1)
+
+  initialUsdCents Int @default(0)
+  initialCdfCents Int @default(0)
+
+  systemUsdCents      Int?
+  systemCdfCents      Int?
+  declaredUsdCents    Int?
+  declaredCdfCents    Int?
+  discrepancyUsdCents Int?
+  discrepancyCdfCents Int?
+
+  sales              Sale[]
+  denominationCounts CashDenominationCount[]
+  auditLogs          AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cashierId])
+  @@index([status])
+  @@index([openedAt])
+}
+
+model CashDenominationCount {
+  id           String      @id @default(uuid())
+  sessionId    String
+  session      CashSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  currency     String // USD | CDF
+  denomination Int
+  quantity     Int
+  totalMinor   Int // Montant en unités mineures (centimes USD, francs CDF)
+
+  @@unique([sessionId, currency, denomination])
+  @@index([sessionId])
+}
+
+// --- AUDIT PERSISTÉ ---
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  details   String?
+  metadata  String?
+  sessionId String?
+  session   CashSession? @relation(fields: [sessionId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// --- PARAMÈTRES LOCAUX (IMPRESSION + BACKUP + LAN) ---
+model AppSettings {
+  id              String  @id @default("default")
+  defaultPrinter  String?
+  receiptWidth    String  @default("80") // 58 | 80
+  pharmacyName    String  @default("Pharmacie Maria")
+  pharmacyAddress String?
+  pharmacyPhone   String?
+  pharmacyRccm    String?
+  pharmacyIdNat   String?
+
+  backupRetentionCount Int      @default(30)
+  backupAutoOnZReport  Boolean  @default(true)
+  lastBackupAt         DateTime?
+
+  lanMode         String  @default("STANDALONE") // STANDALONE | SERVER | CLIENT
+  lanServerPort   Int     @default(4141)
+  lanServerSecret String?
+  lanClientHost   String?
+  lanClientToken  String?
+
+  updatedAt DateTime @updatedAt
+}
+
+// --- HISTORIQUE SAUVEGARDES ---
+model BackupRecord {
+  id          String   @id @default(uuid())
+  fileName    String
+  filePath    String
+  sizeBytes   Int
+  sha256      String
+  destination String   // LOCAL | USB | EXPORT
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// --- ORDONNANCIER NUMÉRIQUE ---
+model PrescriptionRegister {
+  id          String @id @default(uuid())
+  orderNumber String @unique
+
+  saleId    String?
+  sale      Sale?   @relation(fields: [saleId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  prescriberName          String
+  prescriberQualification String
+  prescriberLicense       String?
+
+  patientName       String
+  patientAge        Int?
+  patientIdDocument String?
+
+  prescriptionDate  DateTime
+  dispensedDate     DateTime @default(now())
+  quantityDispensed Int
+
+  validatedById String
+  validatedBy   User   @relation(fields: [validatedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([dispensedDate])
+  @@index([productId])
+  @@index([orderNumber])
+}
+
+// --- INVENTAIRE TOURNANT ---
+model StockAudit {
+  id          String @id @default(uuid())
+  reference   String @unique
+  status      String @default("DRAFT")
+  exchangeRate Float @default(1)
+
+  createdById   String
+  createdBy     User   @relation("AuditCreator", fields: [createdById], references: [id])
+  completedById String?
+  completedBy   User?  @relation("AuditCompleter", fields: [completedById], references: [id])
+
+  items StockAuditItem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StockAuditItem {
+  id      String     @id @default(uuid())
+  auditId String
+  audit   StockAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  stockLotId String?
+  stockLot   StockLot? @relation(fields: [stockLotId], references: [id])
+
+  expectedQuantity Int
+  countedQuantity  Int
+  discrepancy      Int
+
+  unitCostUsd  Float
+  unitCostCdf  Float
+  lossValueUsd Float @default(0)
+  lossValueCdf Float @default(0)
+
+  @@index([auditId])
+  @@index([productId])
+}
+
+// --- DÉCLASSEMENT / SORTIE PÉREMPTION ---
+model StockWriteOff {
+  id         String   @id @default(uuid())
+  stockLotId String
+  stockLot   StockLot @relation(fields: [stockLotId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+
+  quantity Int
+  reason   String
+  notes    String?
+
+  performedById String
+  performedBy   User   @relation(fields: [performedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([stockLotId])
+  @@index([createdAt])
 }

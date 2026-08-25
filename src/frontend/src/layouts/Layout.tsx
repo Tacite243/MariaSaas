@@ -103,6 +103,27 @@ const Layout: React.FC<LayoutProps> = ({ children, userRole, onLogout }) => {
       roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
     },
     {
+      id: 'settings-backup',
+      label: 'Sauvegardes',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      ),
+      roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
+    {
+      id: 'ordonnancier',
+      label: 'Ordonnancier',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+        </svg>
+      ),
+      roles: [UserRole.SUPERADMIN, UserRole.ADMIN]
+    },
+    {
       id: 'billing',
       label: 'Documents',
       icon: (props: React.SVGProps<SVGSVGElement>) => (

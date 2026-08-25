@@ -1,6 +1,7 @@
 import React from 'react'
 import { useCurrency } from '@renderer/hooks/useCurrently'
 import { CartItemUI } from '@renderer/app/store/slice/salesSlice'
+import { isPosExpiryWarning } from '@shared/utils/expiry'
 import { CurrencySwitch } from './CurrencySwitch'
 
 
@@ -36,9 +37,7 @@ export const CartPanel: React.FC<Props> = ({
   const displayTotal = formatPrice(safeSubTotal);
 
   const handleCheckoutClick = () => {
-    if (confirm(`Confirmer l'encaissement de ${displayTotal.value} ${displayTotal.symbol} ?`)) {
-      onCheckout()
-    }
+    onCheckout()
   }
 
   return (
@@ -76,7 +75,15 @@ export const CartPanel: React.FC<Props> = ({
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-slate-800 dark:text-white text-sm truncate">
                   {item.name}
+                  {(item.isPrescriptionRequired || item.isNarcotic) && (
+                    <span className="ml-1 text-[9px] text-red-500 font-black">Rx</span>
+                  )}
                 </h4>
+                {item.fefoDaysUntilExpiry != null && isPosExpiryWarning(item.fefoDaysUntilExpiry) && (
+                  <p className="text-[9px] text-amber-600 font-black uppercase">
+                    Lot FEFO &lt; 60j ({item.fefoDaysUntilExpiry}j)
+                  </p>
+                )}
                 <p className="text-[10px] text-slate-400 font-black mt-0.5 uppercase tracking-widest">
                   {unitPriceFmt.symbol} {unitPriceFmt.value} <span className="text-slate-300 font-normal lowercase mx-1">x</span> {item.quantity}
                 </p>

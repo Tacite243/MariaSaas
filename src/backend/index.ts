@@ -10,6 +10,18 @@ import { setupSalesHandlers } from './ipc/sales'
 import { setupStatsHandlers } from './ipc/stats'
 import { setupFinanceHandlers } from './ipc/finance'
 import { setupClientHandlers } from './ipc/clients'
+import { setupPosHandlers } from './ipc/posHandlers'
+import { setupQrHandlers } from './ipc/qrHandlers'
+import { setupStockHandlers } from './ipc/stockHandlers'
+import { setupPrescriptionHandlers } from './ipc/prescriptionHandlers'
+import { setupBackupHandlers } from './ipc/backupHandlers'
+import { setupLanHandlers } from './ipc/lanHandlers'
+import { lanServerService } from './services/LanServerService'
+import { setMainWindow } from './services/PrintService'
+import { autoUpdater } from 'electron-updater'
+
+
+
 
 // --- CONFIGURATION LINUX "BUNKER" ---
 if (process.platform === 'linux') {
@@ -59,6 +71,7 @@ function createWindow(): void {
 
   mainWindow.webContents.once('did-finish-load', () => {
     // console.log('✅ did-finish-load → show()')
+    setMainWindow(mainWindow)
     mainWindow.show()
   })
 
@@ -76,7 +89,17 @@ function createWindow(): void {
 
 app.whenReady().then(async () => {
   // console.log('🚀 App Ready...')
-  electronApp.setAppUserModelId('com.mariasaas')
+  electronApp.setAppUserModelId('com.mariasaas');
+
+  if (!is.dev) {
+    autoUpdater.checkForUpdatesAndNotify()
+    
+    // Optionnel : Logs pour voir ce que fait l'updater
+    autoUpdater.on('update-available', () => console.log('Mise à jour dispo !'))
+    autoUpdater.on('update-downloaded', () => {
+      console.log('Mise à jour téléchargée. Installation au prochain redémarrage.')
+    })
+  }
 
   // Init DB
   try {
@@ -94,6 +117,23 @@ app.whenReady().then(async () => {
   setupStatsHandlers()
   setupFinanceHandlers()
   setupClientHandlers()
+  setupPosHandlers()
+  setupQrHandlers()
+  setupStockHandlers()
+  setupPrescriptionHandlers()
+  setupBackupHandlers()
+  setupLanHandlers()
+
+  // Auto-démarrage serveur LAN si configuré
+  void lanServerService.getStatus().then(async (s) => {
+    if (s.mode === 'SERVER') {
+      try {
+        await lanServerService.start()
+      } catch (e) {
+        console.error('[LAN] Démarrage serveur échoué:', e)
+      }
+    }
+  })
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {
     createWindow()
