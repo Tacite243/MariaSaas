@@ -4,30 +4,30 @@ directories:
   output: dist
   buildResources: build
 
-# 🟢 Configuration des fichiers inclus
 files:
   - out/**/*
   - resources/**/*
-  - node_modules/@prisma/client/**/*
-  - node_modules/.prisma/client/**/*
-  - prisma/dev.db
+  - prisma/schema.prisma
+  - prisma/migrations/**/*
   - package.json
 
-# 🟢 Sortie de l'archive ASAR pour les binaires Prisma (Indispensable pour Windows)
+# Binaires Prisma / SQLite : hors ASAR (obligatoire pour .node et query engines)
 asarUnpack:
-  - node_modules/.prisma/client/*.node
-  - node_modules/.prisma/client/query-engine-windows.exe
-  - resources/**
+  - '**/@prisma/**'
+  - '**/node_modules/.prisma/**'
+  - '**/node_modules/prisma/**'
+  - '**/prisma/**'
 
-# 🟢 Paramètres globaux
 forceCodeSigning: false
 
-# 🔵 Configuration WINDOWS
 win:
   executableName: mariasaas
   icon: resources/icon.ico
   target:
-    - nsis
+    - target: nsis
+      arch: x64
+    - target: portable
+      arch: x64
   verifyUpdateCodeSignature: false
 
 nsis:
@@ -38,16 +38,20 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: always
 
-# 🟠 Configuration LINUX
+portable:
+  artifactName: ${productName}-Portable-${version}.${ext}
+
 linux:
   target:
-    - deb
-    - AppImage
+    - target: deb
+      arch: x64
+    - target: AppImage
+      arch: x64
   maintainer: taciteiragi@gmail.com
   category: Utility
   icon: resources/icon.png
+  artifactName: ${productName}-${version}.${ext}
 
-# 🟣 Configuration MacOS
 mac:
   target: dmg
   icon: resources/icon.icns

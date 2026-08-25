@@ -7,7 +7,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       lib: {
-        entry: resolve(__dirname, 'src/backend/index.ts')
+        entry: resolve(__dirname, 'src/backend/main.ts')
       },
       rollupOptions: {
         // bcryptjs et @prisma/client doivent absolument rester externes
