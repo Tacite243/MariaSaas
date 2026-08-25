@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@renderer/app/store/store'
 import { addToCart } from '@renderer/app/store/slice/salesSlice'
+import { buildCartItemFromProduct } from '@renderer/utils/cartItem'
 import {
   createScanState,
   isScannerInput,
@@ -9,6 +10,7 @@ import {
   shouldIgnoreScanTarget
 } from '@shared/utils/barcodeScanner'
 import { playScanBeep } from '@renderer/utils/scanBeep'
+import { ProductDTO } from '@shared/types'
 
 interface UseBarcodeScannerOptions {
   onScan?: (code: string) => void
@@ -25,25 +27,9 @@ export const useBarcodeScanner = ({ onScan, enabled = true }: UseBarcodeScannerO
         const res = await window.api.pos.findProductByCode(code)
         if (!res.success || !res.data) return
 
-        const product = res.data as {
-          id: string
-          name: string
-          code: string
-          sellPrice: number
-          currentStock: number
-          dci?: string | null
-        }
+        const product = res.data as ProductDTO
 
-        dispatch(
-          addToCart({
-            productId: product.id,
-            name: product.name,
-            code: product.code,
-            quantity: 1,
-            unitPrice: product.sellPrice,
-            maxStock: product.currentStock
-          })
-        )
+        dispatch(addToCart(buildCartItemFromProduct(product)))
 
         playScanBeep()
         onScan?.(code)

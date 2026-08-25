@@ -22,6 +22,7 @@ import { fetchDailyRate } from '@renderer/app/store/slice/sessionSlice'
 import { setCloseSessionModalOpen, setPrintSettingsModalOpen } from '@renderer/app/store/slice/posSlice'
 import { toUsdCents, convertUsdCentsToCdf } from '@shared/utils/money'
 import { buildReceiptControlPayload } from '@shared/utils/receiptQr'
+import { PrescriptionModal } from './pos/PrescriptionModal'
 import type { SalePrintPayload } from './pos/PaymentModal'
 
 const POS: React.FC = () => {
@@ -154,6 +155,7 @@ const POS: React.FC = () => {
       </div>
 
       <PosShortcutsBar />
+      <PrescriptionModal />
       <PaymentModal subTotal={state.subTotal} onPrintReceipt={handlePrintReceipt} />
       <HeldCartsModal />
       <CashCloseModal />

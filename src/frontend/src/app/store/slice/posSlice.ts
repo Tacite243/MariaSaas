@@ -10,6 +10,7 @@ export interface PosUIState {
   closeSessionModalOpen: boolean
   heldCartsModalOpen: boolean
   printSettingsModalOpen: boolean
+  prescriptionModalOpen: boolean
   zReportData: unknown | null
 }
 
@@ -19,6 +20,7 @@ const initialState: PosUIState = {
   closeSessionModalOpen: false,
   heldCartsModalOpen: false,
   printSettingsModalOpen: false,
+  prescriptionModalOpen: false,
   zReportData: null
 }
 
@@ -67,6 +69,9 @@ const posSlice = createSlice({
     setPrintSettingsModalOpen: (state, action: PayloadAction<boolean>) => {
       state.printSettingsModalOpen = action.payload
     },
+    setPrescriptionModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.prescriptionModalOpen = action.payload
+    },
     setZReportData: (state, action: PayloadAction<unknown | null>) => {
       state.zReportData = action.payload
     }
@@ -81,6 +86,7 @@ export const {
   setCloseSessionModalOpen,
   setHeldCartsModalOpen,
   setPrintSettingsModalOpen,
+  setPrescriptionModalOpen,
   setZReportData
 } = posSlice.actions
 

@@ -135,6 +135,8 @@ export interface ProductDTO {
   packaging?: string | null
   description?: string | null
   isPrescriptionRequired: boolean
+  isNarcotic?: boolean
+  narcoticSchedule?: 'TABLE_A' | 'TABLE_B' | 'NARCOTIC' | null
   maxStock?: number | null
   location?: string | null
   vatRate: number

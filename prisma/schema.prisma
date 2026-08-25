@@ -27,6 +27,10 @@ model User {
   cashMovements       CashMovement[]
   cashSessions        CashSession[]
   auditLogs           AuditLog[]
+  validatedPrescriptions PrescriptionRegister[]
+  stockAuditsCreated  StockAudit[] @relation("AuditCreator")
+  stockAuditsCompleted StockAudit[] @relation("AuditCompleter")
+  stockWriteOffs      StockWriteOff[]
 }
 
 // --- GESTION DE STOCK ---
@@ -55,6 +59,8 @@ model Product {
   packaging              String?
   description            String?
   isPrescriptionRequired Boolean @default(false)
+  isNarcotic             Boolean @default(false)
+  narcoticSchedule       String? // TABLE_A | TABLE_B | NARCOTIC
 
   minStock     Int     @default(5)
   maxStock     Int?
@@ -70,7 +76,10 @@ model Product {
 
   lots             StockLot[]
   requisitionItems RequisitionItem[]
-  saleItems        SaleItem[] // Relation inverse ajoutée
+  saleItems        SaleItem[]
+  prescriptionRegisters PrescriptionRegister[]
+  stockAuditItems  StockAuditItem[]
+  writeOffs        StockWriteOff[]
 }
 
 model StockLot {
@@ -83,7 +92,12 @@ model StockLot {
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  saleItems SaleItem[] // Relation inverse ajoutée (Traçabilité lot vendu)
+  saleItems SaleItem[]
+  stockAuditItems StockAuditItem[]
+  writeOffs   StockWriteOff[]
+
+  @@index([expiryDate])
+  @@index([productId, expiryDate])
 }
 
 model Requisition {
@@ -164,6 +178,8 @@ model Sale {
 
   cashSessionId String?
   cashSession   CashSession? @relation(fields: [cashSessionId], references: [id])
+
+  prescriptions PrescriptionRegister[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -289,4 +305,102 @@ model AppSettings {
   pharmacyRccm    String?
   pharmacyIdNat   String?
   updatedAt       DateTime @updatedAt
+}
+
+// --- ORDONNANCIER NUMÉRIQUE ---
+model PrescriptionRegister {
+  id          String @id @default(uuid())
+  orderNumber String @unique
+
+  saleId    String?
+  sale      Sale?   @relation(fields: [saleId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  prescriberName          String
+  prescriberQualification String
+  prescriberLicense       String?
+
+  patientName       String
+  patientAge        Int?
+  patientIdDocument String?
+
+  prescriptionDate  DateTime
+  dispensedDate     DateTime @default(now())
+  quantityDispensed Int
+
+  validatedById String
+  validatedBy   User   @relation(fields: [validatedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([dispensedDate])
+  @@index([productId])
+  @@index([orderNumber])
+}
+
+// --- INVENTAIRE TOURNANT ---
+model StockAudit {
+  id          String @id @default(uuid())
+  reference   String @unique
+  status      String @default("DRAFT")
+  exchangeRate Float @default(1)
+
+  createdById   String
+  createdBy     User   @relation("AuditCreator", fields: [createdById], references: [id])
+  completedById String?
+  completedBy   User?  @relation("AuditCompleter", fields: [completedById], references: [id])
+
+  items StockAuditItem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StockAuditItem {
+  id      String     @id @default(uuid())
+  auditId String
+  audit   StockAudit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  stockLotId String?
+  stockLot   StockLot? @relation(fields: [stockLotId], references: [id])
+
+  expectedQuantity Int
+  countedQuantity  Int
+  discrepancy      Int
+
+  unitCostUsd  Float
+  unitCostCdf  Float
+  lossValueUsd Float @default(0)
+  lossValueCdf Float @default(0)
+
+  @@index([auditId])
+  @@index([productId])
+}
+
+// --- DÉCLASSEMENT / SORTIE PÉREMPTION ---
+model StockWriteOff {
+  id         String   @id @default(uuid())
+  stockLotId String
+  stockLot   StockLot @relation(fields: [stockLotId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+
+  quantity Int
+  reason   String
+  notes    String?
+
+  performedById String
+  performedBy   User   @relation(fields: [performedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([stockLotId])
+  @@index([createdAt])
 }

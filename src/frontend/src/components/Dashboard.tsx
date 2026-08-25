@@ -4,7 +4,7 @@ import { AppDispatch } from '@renderer/app/store/store'
 import { fetchDailyRate } from '@renderer/app/store/slice/sessionSlice'
 import { StatCard } from './StatCard'
 import { SalesChart } from './SalesCharts'
-import { AlertsPanel } from './AlertsPanel'
+import { ExpiryAlertsPanel } from './inventory/ExpiryAlertsPanel'
 import { VolumeChart } from './VolumeChart'
 import { AIBanner } from './AIBanner'
 import { RateWidget } from './RateWidget'
@@ -172,7 +172,7 @@ const Dashboard: React.FC = () => {
           <SalesChart data={chartData.length > 0 ? chartData : [{ name: 'Auj', sales: 0 }]} />
         </div>
 
-        <AlertsPanel count={stats.lowStockCount} />
+        <ExpiryAlertsPanel lowStockCount={stats.lowStockCount} />
 
         <div className="xl:col-span-3">
           <AIBanner />

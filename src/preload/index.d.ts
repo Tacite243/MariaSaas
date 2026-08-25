@@ -12,6 +12,8 @@ import {
   SaleDTO,
   RequisitionDTO,
   CashMovementDTO,
+  CashJournalEntry,
+  CreateMovementInput,
   DashboardStatsDTO,
   SupplierDTO,
   ClientDTO,
@@ -60,13 +62,8 @@ declare global {
         getHistory: (filter?: {
           from: Date | string
           to: Date | string
-        }) => Promise<ApiResponse<CashMovementDTO[]>>
-        createMovement: (data: {
-          type: 'IN' | 'OUT'
-          amount: number
-          description: string
-          performedBy: string
-        }) => Promise<ApiResponse<CashMovementDTO>>
+        }) => Promise<ApiResponse<CashJournalEntry[]>>
+        createMovement: (data: CreateMovementInput) => Promise<ApiResponse<CashMovementDTO>>
       }
       stats: {
         getDashboard: () => Promise<ApiResponse<DashboardStatsDTO>>
@@ -97,6 +94,19 @@ declare global {
       }
       qr: {
         generate: (text: string, size?: number) => Promise<ApiResponse<string>>
+      }
+      stock: {
+        getExpiringBatches: () => Promise<ApiResponse<import('../shared/types/stock.types').ExpiryAlertSummaryDTO>>
+        writeOff: (data: import('../shared/schemas/stock.schema').WriteOffInput) => Promise<ApiResponse<unknown>>
+        createAudit: (data: import('../shared/schemas/stock.schema').StockAuditCreateInput) => Promise<ApiResponse<unknown>>
+        addAuditItems: (data: import('../shared/schemas/stock.schema').StockAuditAddItemsInput) => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO>>
+        completeAudit: (data: import('../shared/schemas/stock.schema').StockAuditCompleteInput) => Promise<ApiResponse<unknown>>
+        listAudits: () => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO[]>>
+        getAudit: (auditId: string) => Promise<ApiResponse<import('../shared/types/stock.types').StockAuditDTO>>
+      }
+      prescription: {
+        create: (data: import('../shared/schemas/stock.schema').CreatePrescriptionsInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
+        list: (filter?: import('../shared/schemas/stock.schema').PrescriptionFilterInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
       }
     }
   }

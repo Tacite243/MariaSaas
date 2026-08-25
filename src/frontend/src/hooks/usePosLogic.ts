@@ -8,8 +8,9 @@ import {
   updateQuantity,
   setPaymentMethod
 } from '@renderer/app/store/slice/salesSlice'
-import { setPaymentModalOpen } from '@renderer/app/store/slice/posSlice'
+import { setPaymentModalOpen, setPrescriptionModalOpen } from '@renderer/app/store/slice/posSlice'
 import { ProductDTO } from '@shared/types'
+import { buildCartItemFromProduct } from '@renderer/utils/cartItem'
 import { createDraftSafeSelector } from '@reduxjs/toolkit'
 
 const selectPosState = createDraftSafeSelector(
@@ -44,17 +45,7 @@ export const usePosLogic = () => {
   )
 
   const addToCartCb = useCallback(
-    (product: ProductDTO) =>
-      dispatch(
-        addToCart({
-          productId: product.id,
-          name: product.name,
-          code: product.code,
-          quantity: 1,
-          unitPrice: product.sellPrice,
-          maxStock: product.currentStock
-        })
-      ),
+    (product: ProductDTO) => dispatch(addToCart(buildCartItemFromProduct(product))),
     [dispatch]
   )
 
@@ -71,8 +62,20 @@ export const usePosLogic = () => {
         dispatch(setPaymentMethod(method)),
       [dispatch]
     ),
-    openPayment: useCallback(() => dispatch(setPaymentModalOpen(true)), [dispatch]),
-    checkout: useCallback(() => dispatch(setPaymentModalOpen(true)), [dispatch])
+    openPayment: useCallback(() => {
+      const needsRx = cart.some(
+        (i) => (i.isPrescriptionRequired || i.isNarcotic) && !i.prescription
+      )
+      if (needsRx) dispatch(setPrescriptionModalOpen(true))
+      else dispatch(setPaymentModalOpen(true))
+    }, [cart, dispatch]),
+    checkout: useCallback(() => {
+      const needsRx = cart.some(
+        (i) => (i.isPrescriptionRequired || i.isNarcotic) && !i.prescription
+      )
+      if (needsRx) dispatch(setPrescriptionModalOpen(true))
+      else dispatch(setPaymentModalOpen(true))
+    }, [cart, dispatch])
   }
 
   return {

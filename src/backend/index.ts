@@ -12,6 +12,8 @@ import { setupFinanceHandlers } from './ipc/finance'
 import { setupClientHandlers } from './ipc/clients'
 import { setupPosHandlers } from './ipc/posHandlers'
 import { setupQrHandlers } from './ipc/qrHandlers'
+import { setupStockHandlers } from './ipc/stockHandlers'
+import { setupPrescriptionHandlers } from './ipc/prescriptionHandlers'
 import { setMainWindow } from './services/PrintService'
 import { autoUpdater } from 'electron-updater'
 
@@ -114,6 +116,8 @@ app.whenReady().then(async () => {
   setupClientHandlers()
   setupPosHandlers()
   setupQrHandlers()
+  setupStockHandlers()
+  setupPrescriptionHandlers()
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {
     createWindow()

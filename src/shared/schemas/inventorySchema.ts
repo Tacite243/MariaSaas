@@ -22,6 +22,8 @@ export const productSchema = z.object({
     packaging: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     isPrescriptionRequired: z.boolean().default(false),
+    isNarcotic: z.boolean().default(false),
+    narcoticSchedule: z.enum(['TABLE_A', 'TABLE_B', 'NARCOTIC']).optional().nullable(),
 
     // Stock
     minStock: z.coerce.number().int().default(5),

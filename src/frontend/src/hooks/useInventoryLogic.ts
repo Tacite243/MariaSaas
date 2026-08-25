@@ -30,6 +30,8 @@ export const useInventoryLogic = () => {
       packaging: p.packaging || undefined,
       description: p.description || undefined,
       isPrescriptionRequired: p.isPrescriptionRequired,
+      isNarcotic: p.isNarcotic ?? false,
+      narcoticSchedule: p.narcoticSchedule ?? undefined,
       currentStock: p.currentStock,
       minStock: p.minStock,
       maxStock: p.maxStock || undefined,

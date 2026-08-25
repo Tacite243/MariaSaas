@@ -77,6 +77,19 @@ const api = {
   },
   qr: {
     generate: (text: string, size?: number) => ipcRenderer.invoke('qr:generate', { text, size })
+  },
+  stock: {
+    getExpiringBatches: () => ipcRenderer.invoke('stock:get-expiring-batches'),
+    writeOff: (data) => ipcRenderer.invoke('stock:write-off', data),
+    createAudit: (data) => ipcRenderer.invoke('stock:create-audit', data),
+    addAuditItems: (data) => ipcRenderer.invoke('stock:add-audit-items', data),
+    completeAudit: (data) => ipcRenderer.invoke('stock:complete-audit', data),
+    listAudits: () => ipcRenderer.invoke('stock:list-audits'),
+    getAudit: (auditId: string) => ipcRenderer.invoke('stock:get-audit', { auditId })
+  },
+  prescription: {
+    create: (data) => ipcRenderer.invoke('prescription:create', data),
+    list: (filter) => ipcRenderer.invoke('prescription:list', filter)
   }
 }
 

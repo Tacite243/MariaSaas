@@ -19,6 +19,7 @@ import AuditTrail from '@renderer/components/AuditTrail'
 import Reporting from '@renderer/components/Reporting'
 import CashJournal from '@renderer/components/CashJournal'
 import EditProfile from '@renderer/components/EditProfile'
+import { PrescriptionRegisterPage } from '@renderer/components/inventory/PrescriptionRegisterPage'
 
 // --- COMPOSANT WRAPPER (LE PONT) ---
 // Ce composant sert à injecter les données Redux dans le Layout
@@ -67,6 +68,7 @@ export const AppRouter = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pos" element={<POS />} />
             <Route path="/inventory" element={<Inventory />} />
+            <Route path="/ordonnancier" element={<PrescriptionRegisterPage />} />
             <Route path="/customers" element={<CustomerManagement />} />
             <Route path="/billing" element={<BillingManagement />} />
             <Route path="/reporting" element={<Reporting />} />

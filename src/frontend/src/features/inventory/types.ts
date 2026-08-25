@@ -24,6 +24,8 @@ export interface UIMedication {
     packaging?: string; // Ajouté
     description?: string;
     isPrescriptionRequired: boolean; // Ajouté
+    isNarcotic?: boolean;
+    narcoticSchedule?: 'TABLE_A' | 'TABLE_B' | 'NARCOTIC' | null;
 
     // Stock & Prix
     currentStock: number;

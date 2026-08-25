@@ -23,8 +23,13 @@ export const fetchCashHistory = createAsyncThunk<
     async (filter, { rejectWithValue }) => {
         try {
             const res = await window.api.finance.getHistory(filter)
-            if (!res.success) throw new Error(res.error?.message || 'Erreur de chargement')
-            return res.data as CashJournalEntry[]
+            if (!res.success || !res.data) {
+                throw new Error(res.error?.message || 'Erreur de chargement')
+            }
+            return res.data.map((entry) => ({
+                ...entry,
+                timestamp: new Date(entry.timestamp)
+            }))
         } catch (err: unknown) {
             return rejectWithValue((err as Error).message)
         }
@@ -43,13 +48,13 @@ export const createCashMovement = createAsyncThunk<
             const res = await window.api.finance.createMovement(payload)
             if (!res.success) throw new Error(res.error?.message || 'Erreur de création')
 
-            // Auto-refresh du journal pour inclure le nouveau mouvement trié
             const today = new Date()
             today.setHours(0, 0, 0, 0)
             const endOfToday = new Date()
             endOfToday.setHours(23, 59, 59, 999)
 
-            dispatch(fetchCashHistory({ from: today, to: endOfToday }))
+            await dispatch(fetchCashHistory({ from: today, to: endOfToday }))
+            return
         } catch (err: unknown) {
             return rejectWithValue((err as Error).message)
         }

@@ -1,10 +1,13 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { UIMedication } from '../features/inventory/types'
 import { ProductLotDTO } from '@shared/types'
+import { WriteOffModal } from './inventory/WriteOffModal'
+import { daysUntilExpiry, getExpirySeverity } from '@shared/utils/expiry'
 
 interface FlatLot extends ProductLotDTO {
   medName: string
   medCode: string
+  productId: string
   receivedDate: string
 }
 
@@ -13,12 +16,11 @@ interface Props {
 }
 
 export const LotTable: React.FC<Props> = ({ medications }) => {
-  // Aplatir la liste des médicaments pour obtenir une liste de lots
+  const [writeOffTarget, setWriteOffTarget] = useState<FlatLot | null>(null)
+
   const lots = useMemo(() => {
     const flatLots: FlatLot[] = []
-
     medications.forEach((med) => {
-      // med.lots contient des objets de type UILot/ProductLotDTO
       med.lots.forEach((lot) => {
         flatLots.push({
           id: lot.id,
@@ -27,12 +29,11 @@ export const LotTable: React.FC<Props> = ({ medications }) => {
           quantity: lot.quantity,
           receivedDate: lot.receivedDate,
           medName: med.name,
-          medCode: med.code
+          medCode: med.code,
+          productId: med.id
         })
       })
     })
-
-    // Tri par date de péremption (le plus proche en premier)
     return flatLots.sort(
       (a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
     )
@@ -40,10 +41,7 @@ export const LotTable: React.FC<Props> = ({ medications }) => {
 
   if (lots.length === 0) {
     return (
-      <div className="p-20 text-center flex flex-col items-center justify-center gap-4 animate-in fade-in">
-        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-2xl">
-          📦
-        </div>
+      <div className="p-20 text-center flex flex-col items-center justify-center gap-4">
         <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">
           Aucun lot détecté en stock
         </p>
@@ -52,79 +50,69 @@ export const LotTable: React.FC<Props> = ({ medications }) => {
   }
 
   return (
-    <table className="w-full text-left min-w-[800px]">
-      <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-        <tr>
-          <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Produit
-          </th>
-          <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Lot #
-          </th>
-          <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Péremption
-          </th>
-          <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-            Quantité
-          </th>
-          <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-            Statut
-          </th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-        {lots.map((lot) => {
-          const expiry = new Date(lot.expiryDate)
-          const today = new Date()
-          const diffMonths = (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)
-          const isExpired = diffMonths < 0
-          const isUrgent = diffMonths < 3
+    <>
+      <table className="w-full text-left min-w-[800px]">
+        <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+          <tr>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase">Produit</th>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase">Lot #</th>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase">Péremption</th>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase text-center">Qté</th>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase text-right">Statut</th>
+            <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          {lots.map((lot) => {
+            const days = daysUntilExpiry(lot.expiryDate)
+            const severity = getExpirySeverity(days)
+            const label =
+              severity === 'EXPIRED' || severity === 'CRITICAL'
+                ? 'Critique'
+                : severity === 'WARNING'
+                  ? 'Attention'
+                  : severity === 'WATCH'
+                    ? 'Surveillance'
+                    : 'Valide'
 
-          return (
-            <tr
-              key={lot.id}
-              className="hover:bg-slate-50/50 dark:hover:bg-slate-800 transition-colors group"
-            >
-              <td className="px-10 py-6">
-                <div className="flex flex-col min-w-0">
-                  <span className="font-black text-slate-900 dark:text-white text-sm truncate">
-                    {lot.medName}
+            return (
+              <tr key={lot.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800">
+                <td className="px-10 py-6">
+                  <span className="font-black text-sm dark:text-white">{lot.medName}</span>
+                </td>
+                <td className="px-10 py-6 font-mono text-xs">{lot.batchNumber}</td>
+                <td className="px-10 py-6">{new Date(lot.expiryDate).toLocaleDateString()}</td>
+                <td className="px-10 py-6 text-center font-black dark:text-white">{lot.quantity}</td>
+                <td className="px-10 py-6 text-right">
+                  <span className="text-[8px] font-black uppercase px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800">
+                    {label} ({days}j)
                   </span>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                    {lot.medCode}
-                  </span>
-                </div>
-              </td>
-              <td className="px-10 py-6 font-mono font-bold text-slate-500 dark:text-slate-400 text-xs uppercase italic whitespace-nowrap">
-                {lot.batchNumber}
-              </td>
-              <td className="px-10 py-6 whitespace-nowrap">
-                <span
-                  className={`font-black text-sm ${isExpired ? 'text-red-600' : isUrgent ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}
-                >
-                  {expiry.toLocaleDateString()}
-                </span>
-              </td>
-              <td className="px-10 py-6 text-center font-black dark:text-white tabular-nums">
-                {lot.quantity}
-              </td>
-              <td className="px-10 py-6 text-right whitespace-nowrap">
-                <span
-                  className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                    isExpired
-                      ? 'bg-red-600 text-white shadow-lg shadow-red-500/20'
-                      : isUrgent
-                        ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/20'
-                        : 'bg-emerald-50 dark:bg-emerald-900/10 text-emerald-600'
-                  }`}
-                >
-                  {isExpired ? 'Expiré' : isUrgent ? 'Urgent' : 'Valide'}
-                </span>
-              </td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
+                </td>
+                <td className="px-10 py-6 text-right">
+                  {(severity === 'EXPIRED' || severity === 'CRITICAL' || severity === 'WARNING') && (
+                    <button
+                      onClick={() => setWriteOffTarget(lot)}
+                      className="text-[9px] font-black uppercase text-red-500 hover:text-red-700"
+                    >
+                      Déclasser
+                    </button>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+
+      {writeOffTarget && (
+        <WriteOffModal
+          lotId={writeOffTarget.id}
+          productName={writeOffTarget.medName}
+          batchNumber={writeOffTarget.batchNumber}
+          maxQuantity={writeOffTarget.quantity}
+          onClose={() => setWriteOffTarget(null)}
+        />
+      )}
+    </>
   )
 }
