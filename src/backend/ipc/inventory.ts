@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
 import { inventoryService } from '../services/inventoryService'
+import { lanClientService } from '../services/LanClientService'
 import { procedure } from '../lib/procedure'
 import { productSchema, createRequisitionSchema } from '../../shared/schemas/inventorySchema'
 import { createSupplierSchema, updateSupplierSchema } from '../../shared/schemas/supplierSchema'
@@ -24,6 +25,10 @@ export function setupInventoryHandlers() {
 
   // --- PRODUITS ---
   ipcMain.handle('inventory:get-products', async () => {
+    if (await lanClientService.isClient()) {
+      const data = await lanClientService.getProducts()
+      return { success: true, data }
+    }
     const data = await inventoryService.getAllProducts()
     return { success: true, data }
   })

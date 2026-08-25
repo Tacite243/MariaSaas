@@ -89,7 +89,27 @@ const api = {
   },
   prescription: {
     create: (data) => ipcRenderer.invoke('prescription:create', data),
-    list: (filter) => ipcRenderer.invoke('prescription:list', filter)
+    list: (filter) => ipcRenderer.invoke('prescription:list', filter),
+    print: (filter) => ipcRenderer.invoke('prescription:print', filter)
+  },
+  backup: {
+    getStatus: () => ipcRenderer.invoke('backup:get-status'),
+    listHistory: () => ipcRenderer.invoke('backup:list-history'),
+    listDrives: () => ipcRenderer.invoke('backup:list-drives'),
+    create: (data) => ipcRenderer.invoke('backup:create', data),
+    export: (data) => ipcRenderer.invoke('backup:export', data),
+    verifyFile: (data) => ipcRenderer.invoke('backup:verify-file', data),
+    restore: (data) => ipcRenderer.invoke('backup:restore', data),
+    updateSettings: (data) => ipcRenderer.invoke('backup:update-settings', data),
+    pickRestoreFile: () => ipcRenderer.invoke('backup:pick-restore-file'),
+    pickExportFolder: () => ipcRenderer.invoke('backup:pick-export-folder')
+  },
+  lan: {
+    getStatus: () => ipcRenderer.invoke('lan:get-status'),
+    configure: (data) => ipcRenderer.invoke('lan:configure', data),
+    startServer: () => ipcRenderer.invoke('lan:start-server'),
+    stopServer: () => ipcRenderer.invoke('lan:stop-server'),
+    pairClient: (data) => ipcRenderer.invoke('lan:pair-client', data)
   }
 }
 

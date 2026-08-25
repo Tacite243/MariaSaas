@@ -294,7 +294,7 @@ model AuditLog {
   @@index([createdAt])
 }
 
-// --- PARAMÈTRES LOCAUX (IMPRESSION) ---
+// --- PARAMÈTRES LOCAUX (IMPRESSION + BACKUP + LAN) ---
 model AppSettings {
   id              String  @id @default("default")
   defaultPrinter  String?
@@ -304,7 +304,31 @@ model AppSettings {
   pharmacyPhone   String?
   pharmacyRccm    String?
   pharmacyIdNat   String?
-  updatedAt       DateTime @updatedAt
+
+  backupRetentionCount Int      @default(30)
+  backupAutoOnZReport  Boolean  @default(true)
+  lastBackupAt         DateTime?
+
+  lanMode         String  @default("STANDALONE") // STANDALONE | SERVER | CLIENT
+  lanServerPort   Int     @default(4141)
+  lanServerSecret String?
+  lanClientHost   String?
+  lanClientToken  String?
+
+  updatedAt DateTime @updatedAt
+}
+
+// --- HISTORIQUE SAUVEGARDES ---
+model BackupRecord {
+  id          String   @id @default(uuid())
+  fileName    String
+  filePath    String
+  sizeBytes   Int
+  sha256      String
+  destination String   // LOCAL | USB | EXPORT
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 // --- ORDONNANCIER NUMÉRIQUE ---

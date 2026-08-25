@@ -14,6 +14,9 @@ import { setupPosHandlers } from './ipc/posHandlers'
 import { setupQrHandlers } from './ipc/qrHandlers'
 import { setupStockHandlers } from './ipc/stockHandlers'
 import { setupPrescriptionHandlers } from './ipc/prescriptionHandlers'
+import { setupBackupHandlers } from './ipc/backupHandlers'
+import { setupLanHandlers } from './ipc/lanHandlers'
+import { lanServerService } from './services/LanServerService'
 import { setMainWindow } from './services/PrintService'
 import { autoUpdater } from 'electron-updater'
 
@@ -118,6 +121,19 @@ app.whenReady().then(async () => {
   setupQrHandlers()
   setupStockHandlers()
   setupPrescriptionHandlers()
+  setupBackupHandlers()
+  setupLanHandlers()
+
+  // Auto-démarrage serveur LAN si configuré
+  void lanServerService.getStatus().then(async (s) => {
+    if (s.mode === 'SERVER') {
+      try {
+        await lanServerService.start()
+      } catch (e) {
+        console.error('[LAN] Démarrage serveur échoué:', e)
+      }
+    }
+  })
   // Fenêtre (avec petit délai pour laisser le système respirer)
   setTimeout(() => {
     createWindow()

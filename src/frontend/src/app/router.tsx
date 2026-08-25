@@ -20,6 +20,7 @@ import Reporting from '@renderer/components/Reporting'
 import CashJournal from '@renderer/components/CashJournal'
 import EditProfile from '@renderer/components/EditProfile'
 import { PrescriptionRegisterPage } from '@renderer/components/inventory/PrescriptionRegisterPage'
+import { SettingsBackupPage } from '@renderer/components/settings/SettingsBackupPage'
 
 // --- COMPOSANT WRAPPER (LE PONT) ---
 // Ce composant sert à injecter les données Redux dans le Layout
@@ -74,6 +75,7 @@ export const AppRouter = () => {
             <Route path="/reporting" element={<Reporting />} />
             <Route path="/cash-journal" element={<CashJournal />} />
             <Route path="/editprofile" element={<EditProfile />} />
+            <Route path="/settings-backup" element={<SettingsBackupPage />} />
 
             {/* Route restreinte spécifiquement (SuperAdmin uniquement) */}
             {/* On imbrique une nouvelle protection pour cette route */}

@@ -5,9 +5,12 @@ import fs from 'fs'
 
 // 1. Définir les chemins
 const isDev = !app.isPackaged
-const dbPath = isDev
-  ? path.join(__dirname, '../../prisma/dev.db')
-  : path.join(app.getPath('userData'), 'mariasaas.db')
+export const getDatabasePath = (): string =>
+  isDev
+    ? path.join(__dirname, '../../prisma/dev.db')
+    : path.join(app.getPath('userData'), 'mariasaas.db')
+
+const dbPath = getDatabasePath()
 
 // 2. CRITIQUE : Définir l'URL AVANT toute instanciation de PrismaClient
 process.env.DATABASE_URL = `file:${dbPath}`

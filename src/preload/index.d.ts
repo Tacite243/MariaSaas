@@ -107,6 +107,26 @@ declare global {
       prescription: {
         create: (data: import('../shared/schemas/stock.schema').CreatePrescriptionsInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
         list: (filter?: import('../shared/schemas/stock.schema').PrescriptionFilterInput) => Promise<ApiResponse<import('../shared/types/stock.types').PrescriptionRegisterDTO[]>>
+        print: (filter?: import('../shared/schemas/stock.schema').PrescriptionFilterInput) => Promise<ApiResponse<{ success: boolean }>>
+      }
+      backup: {
+        getStatus: () => Promise<ApiResponse<import('../shared/types/backup.types').BackupStatusDTO>>
+        listHistory: () => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO[]>>
+        listDrives: () => Promise<ApiResponse<import('../shared/types/backup.types').RemovableDriveDTO[]>>
+        create: (data: import('../shared/schemas/backup.schema').BackupCreateInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO>>
+        export: (data: import('../shared/schemas/backup.schema').BackupExportInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupRecordDTO>>
+        verifyFile: (data: import('../shared/schemas/backup.schema').BackupVerifyInput) => Promise<ApiResponse<import('../shared/types/backup.types').BackupVerifyResultDTO>>
+        restore: (data: import('../shared/schemas/backup.schema').BackupRestoreInput) => Promise<ApiResponse<{ requiresRestart: boolean }>>
+        updateSettings: (data: import('../shared/schemas/backup.schema').BackupSettingsInput) => Promise<ApiResponse<unknown>>
+        pickRestoreFile: () => Promise<ApiResponse<string | null>>
+        pickExportFolder: () => Promise<ApiResponse<string | null>>
+      }
+      lan: {
+        getStatus: () => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
+        configure: (data: import('../shared/schemas/lan.schema').LanConfigInput) => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
+        startServer: () => Promise<ApiResponse<import('../shared/types/lan.types').LanPairingInfoDTO>>
+        stopServer: () => Promise<ApiResponse<boolean>>
+        pairClient: (data: import('../shared/schemas/lan.schema').LanPairInput) => Promise<ApiResponse<import('../shared/types/lan.types').LanStatusDTO>>
       }
     }
   }

@@ -7,6 +7,7 @@ import {
   sumDenominations
 } from '../../shared/utils/money'
 import { auditService } from './auditService'
+import { backupService } from './BackupService'
 
 export class CashSessionService {
   async getActiveSession(cashierId: string) {
@@ -71,7 +72,7 @@ export class CashSessionService {
   }
 
   async closeSession(data: CashSessionCloseInput) {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const session = await tx.cashSession.findUnique({
         where: { id: data.sessionId },
         include: { cashier: { select: { name: true } } }
@@ -164,6 +165,9 @@ export class CashSessionService {
         }
       }
     })
+
+    void backupService.createSilentBackup()
+    return result
   }
 
   async getZReport(sessionId: string) {

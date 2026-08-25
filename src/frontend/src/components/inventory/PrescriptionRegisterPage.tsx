@@ -20,7 +20,14 @@ export const PrescriptionRegisterPage: React.FC = () => {
     void load()
   }, [])
 
-  const handlePrint = () => window.print()
+  const handlePrint = async () => {
+    const res = await window.api.prescription.print({
+      from: from ? new Date(from) : undefined,
+      to: to ? new Date(to) : undefined,
+      narcoticOnly
+    })
+    if (!res.success) alert(res.error?.message ?? 'Impression échouée')
+  }
 
   return (
     <div className="space-y-6 print:p-0" id="ordonnancier-printable">

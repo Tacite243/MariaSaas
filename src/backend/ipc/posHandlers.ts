@@ -3,6 +3,7 @@ import { procedure } from '../lib/procedure'
 import { cashSessionService } from '../services/CashSessionService'
 import { printService } from '../services/PrintService'
 import { auditService } from '../services/auditService'
+import { lanClientService } from '../services/LanClientService'
 import { prisma } from '../lib/prisma'
 import {
   cashSessionCloseSchema,
@@ -80,6 +81,11 @@ export function setupPosHandlers() {
   ipcMain.handle(
     'pos:find-product-by-code',
     procedure.input(productByCodeSchema).query(async (input) => {
+      if (await lanClientService.isClient()) {
+        const product = await lanClientService.findProductByCode(input.code)
+        if (!product) throw new Error(`Produit introuvable pour le code: ${input.code}`)
+        return product
+      }
       const product = await prisma.product.findFirst({
         where: {
           OR: [{ code: input.code }, { codeCip7: input.code }],
